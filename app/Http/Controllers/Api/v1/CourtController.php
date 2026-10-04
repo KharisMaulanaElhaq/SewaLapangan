@@ -22,7 +22,7 @@ class CourtController extends Controller
     {
         $court = Court::where('is_active', true)->findOrFail($id);
 
-        $dateString = $request->query('date', Carbon::now('Asia/Jakarta')->toDateString());
+        $dateString = $request->input('date', Carbon::now('Asia/Jakarta')->toDateString());
 
         // Basic date format validation
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateString)) {

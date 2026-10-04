@@ -29,10 +29,11 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    // --- Public Discovery & Availability ---
-    Route::get('venues', [VenueController::class, 'index']);
+    // --- Public Discovery & Availability (Supports GET and POST with JSON Body) ---
+    Route::match(['get', 'post'], 'venues', [VenueController::class, 'index']);
+    Route::match(['get', 'post'], 'venues/search', [VenueController::class, 'index']);
     Route::get('venues/{id}', [VenueController::class, 'show']);
-    Route::get('courts/{id}/availability', [CourtController::class, 'availability']);
+    Route::match(['get', 'post'], 'courts/{id}/availability', [CourtController::class, 'availability']);
 
     // --- Payment Webhook (Public Gateway Signature Validated) ---
     Route::post('payments/webhook/{provider?}', [PaymentWebhookController::class, 'handleWebhook']);
