@@ -61,7 +61,7 @@ class ManageVenueController extends Controller
             'status' => 'success',
             'message' => 'Venue berhasil ditambahkan.',
             'data' => new VenueResource($venue),
-        ], 201);
+        ], 200);
     }
 
     /**

@@ -26,7 +26,7 @@ class AuthAndRoleTest extends TestCase
 
         $response = $this->postJson('/api/v1/auth/register', $payload);
 
-        $response->assertStatus(201);
+        $response->assertStatus(200);
         $response->assertJson([
             'status' => 'success',
             'data' => [
@@ -56,7 +56,7 @@ class AuthAndRoleTest extends TestCase
 
         $response = $this->postJson('/api/v1/auth/register', $payload);
 
-        $response->assertStatus(201);
+        $response->assertStatus(200);
         $response->assertJson([
             'status' => 'success',
             'data' => [

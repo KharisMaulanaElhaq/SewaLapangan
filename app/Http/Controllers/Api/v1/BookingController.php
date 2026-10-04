@@ -100,7 +100,7 @@ class BookingController extends Controller
                 'status' => 'success',
                 'message' => 'Booking berhasil dibuat. Slot Anda telah di-HOLD selama 15 menit. Silakan segera selesaikan pembayaran DP.',
                 'data' => new BookingResource($booking),
-            ], 201);
+            ], 200);
         } catch (Exception $e) {
             $statusCode = str_contains($e->getMessage(), 'sedang dalam proses') || str_contains($e->getMessage(), 'sudah terisi') ? 409 : 422;
 

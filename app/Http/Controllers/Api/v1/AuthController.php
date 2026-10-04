@@ -49,7 +49,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'is_pending_approval' => ($status === 'pending'),
             ],
-        ], 201);
+        ], 200);
     }
 
     /**

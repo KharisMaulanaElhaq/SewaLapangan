@@ -65,7 +65,7 @@ class ManageCourtController extends Controller
             'status' => 'success',
             'message' => 'Lapangan berhasil ditambahkan beserta jam operasional default.',
             'data' => new CourtResource($court->load(['operatingHours', 'courtPrices'])),
-        ], 201);
+        ], 200);
     }
 
     /**
@@ -133,7 +133,7 @@ class ManageCourtController extends Controller
             'status' => 'success',
             'message' => 'Aturan harga berhasil ditambahkan.',
             'data' => new CourtPriceResource($price),
-        ], 201);
+        ], 200);
     }
 
     /**
@@ -175,7 +175,7 @@ class ManageCourtController extends Controller
             'status' => 'success',
             'message' => 'Jadwal blokir (maintenance/event) berhasil dibuat.',
             'data' => new ScheduleBlockResource($block),
-        ], 201);
+        ], 200);
     }
 
     /**
