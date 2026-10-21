@@ -54,7 +54,7 @@ class NumberedCanvas(canvas.Canvas):
         
         self.setFont("Helvetica", 8)
         self.setFillColor(colors.HexColor("#64748B"))
-        self.drawString(36, 28, "SportVenue Kelompok 3 — Koreksi & Sinkronisasi Resource REST API (Aktivitas 1 s.d. 4)")
+        self.drawString(36, 28, "SportVenue Kelompok 3 — Dokumen Desain REST API, Koreksi ERD & Panduan Status Code")
         page_str = f"Halaman {self._pageNumber} dari {page_count}"
         self.drawRightString(559, 28, page_str)
         self.restoreState()
@@ -275,7 +275,6 @@ def build_pdf(filename):
     ]))
     story.append(t_erd)
 
-    # Catatan Selaras ERD
     note_erd = """<b>Catatan Penyelarasan Atribut Fisik Database vs Field Turunan:</b><br/>
 • <b>venues.is_active:</b> Status aktif dikontrol di tingkat lapangan (<code>courts.is_active</code>). Venue tidak memiliki kolom <code>is_active</code>.<br/>
 • <b>play_date:</b> Tidak ada kolom <code>play_date</code> di tabel <code>bookings</code>; tanggal main tersimpan di baris slot <code>booking_slots.slot_start</code>.<br/>
@@ -486,7 +485,75 @@ def build_pdf(filename):
     story.append(PageBreak())
 
     # ==========================================
-    # HALAMAN 4: REPRESENTASI, ERROR, NON-CRUD & KEPUTUSAN
+    # HALAMAN 4: KAMUS & PANDUAN STATUS CODE HANDLING
+    # ==========================================
+    story.append(Paragraph("Kamus & Panduan Lengkap HTTP Status Code Handling (RFC 9110)", h1_style))
+    story.append(Paragraph("Setiap kode status HTTP yang dipakai dalam perancangan REST API SportVenue memiliki semantik baku, kondisi penggunaan spesifik, dan format body response terstandar:", body_style))
+
+    sc_headers = [
+        Paragraph("Kode HTTP", table_header),
+        Paragraph("Kategori", table_header),
+        Paragraph("Arti & Semantik Standar (RFC 9110)", table_header),
+        Paragraph("Konteks Penggunaan pada SportVenue", table_header),
+        Paragraph("Karakteristik Body Response", table_header)
+    ]
+    sc_rows = [
+        sc_headers,
+        [Paragraph("<b>200 OK</b>", table_cell_center), Paragraph("2xx Success", table_cell_center), Paragraph("Request berhasil diproses dan mengembalikan data.", table_cell), Paragraph("GET katalog venue/court/booking, PUT/PATCH update, POST kalkulasi refund batal.", table_cell), Paragraph("Amplop: <code>{ status: 'success', data: { ... } }</code>", table_cell)],
+        [Paragraph("<b>201 Created</b>", table_cell_center), Paragraph("2xx Success", table_cell_center), Paragraph("Resource baru berhasil dibuat di server.", table_cell), Paragraph("POST register user, POST booking baru, POST tambah lapangan, POST token DP Snap.", table_cell), Paragraph("Memuat data baru & header <code>Location: /api/v1/...</code>", table_cell)],
+        [Paragraph("<b>204 No Content</b>", table_cell_center), Paragraph("2xx Success", table_cell_center), Paragraph("Operasi tuntas, sengaja tanpa konten response.", table_cell), Paragraph("DELETE lapangan, DELETE jadwal blokir, POST logout revokasi token.", table_cell), Paragraph("<b>Tanpa Body</b> (0 byte payload jaringan)", table_cell)],
+        [Paragraph("<b>400 Bad Request</b>", table_cell_center), Paragraph("4xx Client", table_cell_center), Paragraph("Sintaks request rusak / gagal diparse.", table_cell), Paragraph("Payload JSON malformed (kurung kurawal tidak tertutup, koma menggantung).", table_cell), Paragraph("Amplop: <code>{ status: 'error', message: 'Malformed JSON' }</code>", table_cell)],
+        [Paragraph("<b>401 Unauthorized</b>", table_cell_center), Paragraph("4xx Client", table_cell_center), Paragraph("Kredensial autentikasi tidak ada / tidak valid.", table_cell), Paragraph("Akses tanpa token Bearer, token Sanctum expired, kombinasi login salah.", table_cell), Paragraph("Pesan: <code>Unauthenticated / Invalid credentials</code>", table_cell)],
+        [Paragraph("<b>403 Forbidden</b>", table_cell_center), Paragraph("4xx Client", table_cell_center), Paragraph("Identitas dikenali, tetapi tidak punya izin akses.", table_cell), Paragraph("Penyewa akses <code>/manage/*</code>, edit venue milik orang lain, HMAC webhook palsu.", table_cell), Paragraph("Pesan: <code>Akses ditolak. Tidak berhak atas aksi ini.</code>", table_cell)],
+        [Paragraph("<b>404 Not Found</b>", table_cell_center), Paragraph("4xx Client", table_cell_center), Paragraph("Resource yang diminta tidak ada di sistem.", table_cell), Paragraph("Akses <code>/venues/999</code> atau <code>/courts/888</code> dengan ID yang tidak terdaftar di DB.", table_cell), Paragraph("Amplop: <code>{ status: 'error', message: 'Not Found' }</code>", table_cell)],
+        [Paragraph("<b>409 Conflict</b>", table_cell_center), Paragraph("4xx Client", table_cell_center), Paragraph("Bentrok dengan state database saat ini.", table_cell), Paragraph("<b>Anti Double Booking Guard (§9.2):</b> Slot di-hold user lain; booking expired dibatalkan.", table_cell), Paragraph("Amplop: <code>{ code: 'SLOT_ALREADY_LOCKED', ... }</code>", table_cell)],
+        [Paragraph("<b>422 Unprocessable</b>", table_cell_center), Paragraph("4xx Client", table_cell_center), Paragraph("Sintaks benar, isi melanggar validasi bisnis.", table_cell), Paragraph("Form booking tanpa slot, format tgl bukan YYYY-MM-DD, email duplikat, DP < 10%.", table_cell), Paragraph("Amplop: <code>{ errors: { field: ['detail pesan'] } }</code>", table_cell)],
+        [Paragraph("<b>429 Too Many Req</b>", table_cell_center), Paragraph("4xx Client", table_cell_center), Paragraph("Frekuensi request melebihi ambang batas.", table_cell), Paragraph("Spamming booking, brute-force login (> 60 request/menit). Menangkal bot.", table_cell), Paragraph("Header <code>Retry-After: 60</code> + pesan rate limit.", table_cell)],
+        [Paragraph("<b>500 Server Error</b>", table_cell_center), Paragraph("5xx Server", table_cell_center), Paragraph("Kegagalan tak terduga pada server backend.", table_cell), Paragraph("Koneksi MySQL terputus, fatal exception runtime unhandled.", table_cell), Paragraph("Pesan umum, <b>tanpa stack trace</b> demi keamanan.", table_cell)],
+        [Paragraph("<b>503 Unavailable</b>", table_cell_center), Paragraph("5xx Server", table_cell_center), Paragraph("Layanan upstream/gateway sedang down.", table_cell), Paragraph("API Midtrans payment gateway down/maintenance saat generate token Snap.", table_cell), Paragraph("Pesan petunjuk gateway sibuk, coba kembali.", table_cell)],
+    ]
+    t_sc = Table(sc_rows, colWidths=[55, 52, 125, 175, 116])
+    t_sc.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), BG_HEADER),
+        ('ALIGN', (0,0), (-1,0), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
+        ('TOPPADDING', (0,0), (-1,-1), 1.6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 1.6),
+        ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('RIGHTPADDING', (0,0), (-1,-1), 3),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
+    ]))
+    story.append(t_sc)
+    story.append(Spacer(1, 5))
+
+    sc_analysis = """<b>Prinsip & Analisis Penanganan Status Code Kritis:</b><br/>
+1. <b>Mengapa Double Booking menggunakan <code>409 Conflict</code> (bukan 400 atau 422)?</b><br/>
+   Request penyewa valid secara sintaks dan tipe data (lolos 422). Namun operasi ditolak karena terjadi tabrakan konkurensi pada indeks unik <code>(court_id, slot_start)</code> di InnoDB. Sesuai RFC 9110, 409 Conflict adalah status paling tepat untuk bentrok state data.<br/>
+2. <b>Perbedaan Tegas <code>401 Unauthorized</code> vs <code>403 Forbidden</code>:</b><br/>
+   • <b>401 (Autentikasi):</b> Masalah identitas (token tidak ada/kedaluwarsa). Client dapat mengulang request dengan menyertakan token yang valid.<br/>
+   • <b>403 (Otorisasi):</b> Identitas sah, tetapi role/policy melarang aksi tersebut (misal penyewa menghapus court). Mengulang token tidak akan berhasil.<br/>
+3. <b>Mengapa Validasi Form menghasilkan <code>422 Unprocessable Content</code> (bukan 400)?</b><br/>
+   Membedakan kesalahan transport/JSON corrupt (400) dengan kegagalan aturan bisnis domain (422), memudahkan frontend memetakan error per field.<br/>
+4. <b>Semantik <code>201 Created</code> vs <code>204 No Content</code>:</b><br/>
+   201 wajib menyertakan header <code>Location</code> dan representasi data baru; 204 digunakan saat delete/logout tanpa mengembalikan body."""
+    
+    t_sc_analysis = Table([[Paragraph(sc_analysis, body_style)]], colWidths=[523])
+    t_sc_analysis.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F0FDF4")),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#86EFAC")),
+        ('TOPPADDING', (0,0), (-1,-1), 3.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3.5),
+        ('LEFTPADDING', (0,0), (-1,-1), 6),
+        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t_sc_analysis)
+
+    story.append(PageBreak())
+
+    # ==========================================
+    # HALAMAN 5: REPRESENTASI, ERROR, NON-CRUD & KEPUTUSAN
     # ==========================================
     story.append(Paragraph("Representasi Response JSON & Format Error Terstandar", h1_style))
     story.append(Paragraph("Format representasi data keluaran Laravel API Resource seragam untuk seluruh endpoint (envelope data, meta, dan links):", body_style))
@@ -594,7 +661,7 @@ def build_pdf(filename):
     story.append(t_dec)
 
     doc.build(story, canvasmaker=NumberedCanvas)
-    print(f"Successfully generated synchronized 4-page PDF: {filename}")
+    print(f"Successfully generated 5-page PDF: {filename}")
 
 def build_docx(filename):
     doc = docx.Document()
@@ -827,7 +894,51 @@ def build_docx(filename):
 
     doc.add_page_break()
 
-    # Halaman 4 Docx
+    # Halaman 4 Docx: STATUS CODE HANDLING
+    h_sc = doc.add_paragraph()
+    r = h_sc.add_run("Kamus & Panduan Lengkap HTTP Status Code Handling (RFC 9110)")
+    r.bold = True
+    r.font.size = Pt(11)
+    r.font.color.rgb = RGBColor(30, 58, 138)
+
+    sc_table_data = [
+        ["Kode", "Kategori", "Arti Standar (RFC 9110)", "Konteks Penggunaan pada SportVenue", "Karakteristik Response"],
+        ["200 OK", "2xx Success", "Request berhasil diproses", "GET katalog venue/court, PUT/PATCH update, refund sewa", "{ status: 'success', data: { ... } }"],
+        ["201 Created", "2xx Success", "Resource baru berhasil dibuat", "POST register, POST booking baru, POST court, POST payment", "Header Location + representasi data baru"],
+        ["204 No Content", "2xx Success", "Operasi tuntas tanpa body", "DELETE lapangan, DELETE blokir, POST logout revokasi token", "Tanpa body (0 byte payload jaringan)"],
+        ["400 Bad Request", "4xx Client", "Sintaks request rusak", "Payload JSON rusak (kurung kurawal tidak tutup, sintaks error)", "{ status: 'error', message: 'Malformed JSON' }"],
+        ["401 Unauthorized", "4xx Client", "Autentikasi tidak valid", "Tanpa Bearer token, token Sanctum expired, salah login", "{ status: 'error', message: 'Unauthenticated' }"],
+        ["403 Forbidden", "4xx Client", "Otorisasi ditolak (tidak berhak)", "Penyewa akses /manage/*, edit venue orang lain, HMAC palsu", "{ status: 'error', message: 'Akses ditolak' }"],
+        ["404 Not Found", "4xx Client", "Resource tidak ada di sistem", "ID venue/court/booking tidak terdaftar di database MySQL", "{ status: 'error', message: 'Not Found' }"],
+        ["409 Conflict", "4xx Client", "Bentrok dengan state database", "Anti double booking (slot terkunci), booking expired dibatalkan", "{ code: 'SLOT_ALREADY_LOCKED', message: '...' }"],
+        ["422 Unprocessable", "4xx Client", "Isi melanggar validasi bisnis", "Slot kosong, tanggal bukan YYYY-MM-DD, email duplikat", "{ errors: { field: ['detail pesan error'] } }"],
+        ["429 Too Many Req", "4xx Client", "Melebihi kuota rate limit", "Spam booking, brute-force login (> 60 request/menit)", "Header Retry-After: 60 + pesan penolakan"],
+        ["500 Server Error", "5xx Server", "Kegagalan internal tak terduga", "Koneksi database MySQL terputus, fatal exception runtime", "Pesan umum, tanpa stack trace"],
+        ["503 Unavailable", "5xx Server", "Layanan upstream/gateway down", "API Midtrans payment gateway down/maintenance saat token", "Pesan gateway sibuk, coba kembali"]
+    ]
+    t_sc_docx = doc.add_table(rows=len(sc_table_data), cols=5)
+    t_sc_docx.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for r_idx, row in enumerate(sc_table_data):
+        for c_idx, val in enumerate(row):
+            cell = t_sc_docx.cell(r_idx, c_idx)
+            if r_idx == 0:
+                set_cell_background(cell, "1E3A8A")
+            elif r_idx % 2 == 1:
+                set_cell_background(cell, "FFFFFF")
+            else:
+                set_cell_background(cell, "F8FAFC")
+            p = cell.paragraphs[0]
+            p.paragraph_format.space_after = Pt(1)
+            p.paragraph_format.space_before = Pt(1)
+            run = p.add_run(val)
+            run.font.size = Pt(6.8)
+            if r_idx == 0:
+                run.bold = True
+                run.font.color.rgb = RGBColor(255, 255, 255)
+
+    doc.add_page_break()
+
+    # Halaman 5 Docx
     h5 = doc.add_paragraph()
     r = h5.add_run("Representasi Response JSON & Format Error Terstandar")
     r.bold = True
@@ -865,7 +976,7 @@ def build_docx(filename):
 • Versioning: Prefix /api/v1 untuk proteksi kontrak jangka panjang tanpa merusak client lawas.""").font.size = Pt(8.5)
 
     doc.save(filename)
-    print(f"Successfully generated synchronized DOCX: {filename}")
+    print(f"Successfully generated synchronized 5-page DOCX: {filename}")
 
 if __name__ == "__main__":
     pdf_path = r"c:\xampp\htdocs\booking_lapangan\Tugas_Minggu_4_Workshop_Desain_REST_API_Kelompok_3.pdf"

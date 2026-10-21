@@ -117,9 +117,9 @@ Dirancang query parameter terstandar pada endpoint bertipe collection untuk meny
 
 | Endpoint Collection | Filtering (Whitelist) | Searching | Sorting (Default & Whitelist) | Pagination (Default / Maksimum) |
 |:---|:---|:---|:---|:---|
-| **`GET /api/v1/venues`** | `city` (string)<br>`sport` / `sport_type` (futsal, badminton, basketball, mini_soccer)<br>`min_price` (integer)<br>`max_price` (integer)<br>*(Filter harga & olahraga dievaluasi melalui relasi child `courts.courtPrices`)* | `q`<br>*(mencari substring pada `name`, `address`, dan `city`)* | • Default: `name`<br>• Whitelist: `name`, `-name`, `created_at`, `-created_at`, `starting_price*`, `-starting_price*`<br>*(Ket: starting_price diurutkan via subquery agregasi `MIN(court_prices.price)`)* | Model: Offset/page-based<br>Parameter: `page`, `per_page`<br>• Default: **10**<br>• Maksimum: **50** data/layar |
-| **`GET /api/v1/bookings`** | `status` (`PENDING_PAYMENT`, `CONFIRMED`, `COMPLETED`, `CANCELLED`, `EXPIRED`, `NO_SHOW`)<br>`court_id` (integer)<br>`date_from` (YYYY-MM-DD)<br>`date_to` (YYYY-MM-DD)<br>*(Filter rentang tanggal dievaluasi melalui child `booking_slots.slot_start`)* | `q`<br>*(mencari kode booking `code`, misal `BK-20261011-8899A`)* | • Default: `-created_at` (terbaru lebih dulu)<br>• Whitelist: `created_at`, `-created_at`, `total_price`, `-total_price`, `expires_at`, `-expires_at` | Model: Offset/page-based<br>Parameter: `page`, `per_page`<br>• Default: **15**<br>• Maksimum: **100** data/layar |
-| **`GET /api/v1/admin/users`** | `role` (`penyewa`, `pengelola`, `admin`)<br>`status` (`active`, `pending`, `suspended`) | `q`<br>*(mencari pada `name`, `email`, dan `phone`)* | • Default: `-created_at`<br>• Whitelist: `name`, `-name`, `email`, `created_at`, `-created_at` | Model: Offset/page-based<br>Parameter: `page`, `per_page`<br>• Default: **20**<br>• Maksimum: **100** data/layar |
+| **`GET /api/v1/venues`** | `city` (string)<br>`sport` / `sport_type` (futsal, badminton, basketball, mini_soccer)<br>`min_price` (integer)<br>`max_price` (integer)<br>*(Filter harga & olahraga dievaluasi melalui relasi child `courts.courtPrices`)* | `q`<br>*(mencari substring pada `name`, `address`, dan `city`)* | • Default: `name`<br>• Whitelist: `name`, `-name`, `created_at`, `-created_at`, `starting_price*`, `-starting_price*`<br>*(Ket: starting_price diurutkan via subquery agregasi `MIN(court_prices.price)`)* | Model: Offset-based<br>Parameter: `page`, `per_page`<br>• Default: **10**<br>• Maksimum: **50** data/layar |
+| **`GET /api/v1/bookings`** | `status` (`PENDING_PAYMENT`, `CONFIRMED`, `COMPLETED`, `CANCELLED`, `EXPIRED`, `NO_SHOW`)<br>`court_id` (integer)<br>`date_from` (YYYY-MM-DD)<br>`date_to` (YYYY-MM-DD)<br>*(Filter rentang tanggal dievaluasi melalui child `booking_slots.slot_start`)* | `q`<br>*(mencari kode booking `code`, misal `BK-20261011-8899A`)* | • Default: `-created_at` (terbaru lebih dulu)<br>• Whitelist: `created_at`, `-created_at`, `total_price`, `-total_price`, `expires_at`, `-expires_at` | Model: Offset-based<br>Parameter: `page`, `per_page`<br>• Default: **15**<br>• Maksimum: **100** data/layar |
+| **`GET /api/v1/admin/users`** | `role` (`penyewa`, `pengelola`, `admin`)<br>`status` (`active`, `pending`, `suspended`) | `q`<br>*(mencari pada `name`, `email`, dan `phone`)* | • Default: `-created_at`<br>• Whitelist: `name`, `-name`, `email`, `created_at`, `-created_at` | Model: Offset-based<br>Parameter: `page`, `per_page`<br>• Default: **20**<br>• Maksimum: **100** data/layar |
 
 ---
 
@@ -132,7 +132,7 @@ Hasil evaluasi dan penilaian rancangan API SportVenue mengacu pada 8 butir stand
 | 2 | Prefix `/api/v1` dipakai konsisten | **[ X ] Ya** | Seluruh endpoint RESTful berada di bawah prefix `/api/v1` untuk menjamin strategi versioning tanpa memutus client lama. |
 | 3 | Method sesuai operasi; GET tidak mengubah data | **[ X ] Ya** | Method GET bersifat *safe & idempotent*. Perubahan data selalu menggunakan method POST, PUT, PATCH, atau DELETE. |
 | 4 | POST → 201, DELETE → 204, dan status gagal relevan dicantumkan | **[ X ] Ya** | Operasi create mengembalikan `201 Created` disertai header Location; delete mengembalikan `204 No Content`. Status gagal (400, 401, 403, 404, 409, 422) dirancang lengkap. |
-| 5 | Nesting maksimal 2 tingkat | **[ X ] Ya** | Hierarki URI dibatasi maksimal 2 tingkat (misal `/venues/{id}/courts`, `/courts/{id}/prices`). Setelah item memiliki ID unik global, client mengakses secara flat (`/courts/{id}`, `/bookings/{id}`). |
+| 5 | Nesting maksimal 2 tingkat | **[ X ] Ya** | Hierarki URI dibatasi maksimal 2 tingkat (misal `/venues/{id}/courts`, `/courts/{id}/prices`). Setelah item memiliki ID unik global, akses dilakukan secara flat (`/courts/{id}`, `/bookings/{id}`). |
 | 6 | Setiap collection memiliki pagination dengan batas maksimum | **[ X ] Ya** | Seluruh endpoint koleksi dibatasi `per_page` default 10–20 dengan batas maksimum 50–100 untuk menangkal celah OWASP *Unrestricted Resource Consumption*. |
 | 7 | Filter/sort memakai query parameter dengan whitelist | **[ X ] Ya** | Parameter filtering diletakkan di query string GET, dilengkapi whitelist field yang selaras dengan kolom fisik ERD untuk mencegah SQL error dan ekspos kolom sensitif. |
 | 8 | Format error seragam | **[ X ] Ya** | Seluruh response error distandarkan dengan format seragam `{ "status": "error", "message": "...", "errors": { ... } }`. |
@@ -147,11 +147,42 @@ Hasil evaluasi dan penilaian rancangan API SportVenue mengacu pada 8 butir stand
 
 ---
 
+## 🚦 Kamus & Panduan HTTP Status Code Handling (Point 5 & 16 Modul Ajar)
+
+Untuk memastikan konsistensi kontrak API dan pemahaman menyeluruh antara tim backend dan pengembang client (frontend/mobile), setiap kode status HTTP yang dipakai dalam perancangan SportVenue didefinisikan secara baku berdasarkan semantik **RFC 9110** dan praktik terbaik industri:
+
+### A. Tabel Referensi & Pengertian Kode Status HTTP
+| Kode HTTP | Kategori | Arti & Semantik Standar (RFC 9110) | Konteks Penggunaan pada SportVenue | Karakteristik Body Response |
+|:---:|:---:|:---|:---|:---|
+| **`200 OK`** | 2xx Success | Permintaan berhasil diproses dan hasil operasi dikembalikan. | Digunakan pada `GET` data resource (venues, bookings, profile), `PUT`/`PATCH` pembaruan yang mengembalikan data terbaru, dan `POST` pembatalan sewa yang menghitung refund. | Memuat envelope `{ status: "success", data: { ... } }`. |
+| **`201 Created`** | 2xx Success | Permintaan berhasil dan menghasilkan resource baru di server. | Digunakan pada pembuatan akun (`POST /auth/register`), pembuatan booking (`POST /bookings`), penambahan lapangan (`POST /manage/courts`), dan inisialisasi pembayaran Snap (`POST /bookings/{id}/payments`). | Wajib menyertakan data resource baru dan header `Location: /api/v1/{resource}/{id}`. |
+| **`204 No Content`** | 2xx Success | Permintaan berhasil diproses secara tuntas, namun tidak ada konten data yang perlu dikirim kembali. | Digunakan saat penghapusan resource (`DELETE /manage/courts/{id}`, `DELETE /manage/blocks/{id}`) dan saat mencabut token sesi (`POST /auth/logout`). | **Tanpa Body** (panjang payload 0 byte) untuk menghemat bandwidth jaringan. |
+| **`400 Bad Request`** | 4xx Client Error | Sintaks permintaan rusak atau tidak dapat dipahami oleh parser server (*malformed request*). | Terjadi jika payload JSON yang dikirim client rusak sintaksnya (misal kurung kurawal tidak tertutup, koma menggantung, atau tipe data payload bertentangan). | Memuat amplop `{ status: "error", message: "Malformed JSON payload." }`. |
+| **`401 Unauthorized`** | 4xx Client Error | Permintaan membutuhkan autentikasi pengguna, tetapi kredensial tidak ada atau tidak valid. | Terjadi jika client mengakses endpoint terlindungi tanpa header `Authorization: Bearer <token>`, token Sanctum telah kedaluwarsa/dicabut, atau login email/password salah. | Memuat amplop `{ status: "error", message: "Unauthenticated / Invalid credentials." }`. |
+| **`403 Forbidden`** | 4xx Client Error | Identitas pengguna dikenali, tetapi pengguna tidak memiliki hak izin (*otorisasi*) atas resource tersebut. | Terjadi jika penyewa mencoba mengakses endpoint `/manage/*`, pengelola mencoba mengubah venue milik orang lain (*policy ownership violation*), atau signature webhook Midtrans tidak sah. | Memuat amplop `{ status: "error", message: "Akses ditolak. Anda tidak berhak melakukan aksi ini." }`. |
+| **`404 Not Found`** | 4xx Client Error | Resource yang diminta tidak ditemukan pada alamat URI yang diberikan. | Terjadi ketika mencari venue, lapangan, booking, atau harga dengan `{id}` yang tidak terdaftar di database MySQL. | Memuat amplop `{ status: "error", message: "Resource tidak ditemukan." }`. |
+| **`409 Conflict`** | 4xx Client Error | Permintaan valid secara sintaks, namun bertentangan dengan kondisi/state database saat ini. | **Kunci Arsitektur Concurrency (§9.2 PRD):** Dikembalikan ketika slot jam yang diminta sudah terkunci/di-hold oleh penyewa lain, atau saat booking yang sudah selesai/kedaluwarsa dibatalkan kembali. | Memuat amplop `{ status: "error", message: "Slot sudah terisi.", code: "SLOT_ALREADY_LOCKED" }`. |
+| **`422 Unprocessable Content`** | 4xx Client Error | Permintaan terbaca sempurna (*well-formed*), namun isi field melanggar aturan validasi bisnis. | Dikembalikan ketika input form gagal validasi: format tanggal bukan `YYYY-MM-DD`, slot booking kosong, persentase DP di luar 10–100%, atau email sudah terdaftar. | Memuat `{ status: "error", message: "...", errors: { field: ["detail"] } }`. |
+| **`429 Too Many Requests`** | 4xx Client Error | Client telah melampaui kuota frekuensi pengiriman request dalam batas waktu yang ditentukan (*rate limit*). | Menangkal serangan spam booking, login brute-force, atau bot scraping katalog (misal limit > 60 request/menit per IP/token). | Menyertakan header `Retry-After: 60` dan pesan penolakan kuota. |
+| **`500 Internal Server Error`** | 5xx Server Error | Terjadi kegagalan sistem internal pada server yang tidak terduga saat memproses request. | Terjadi ketika koneksi server database MySQL terputus, fatal exception runtime, atau kegagalan internal kode tanpa penanganan khusus. | Memuat pesan umum tanpa mengekspos *stack trace* sensitif demi keamanan sistem. |
+| **`503 Service Unavailable`** | 5xx Server Error | Server sedang tidak dapat melayani permintaan karena ketergantungan pihak ketiga (*upstream*) mengalami gangguan. | Dikembalikan ketika API Payment Gateway Midtrans sedang maintenance/down sehingga inisialisasi token Snap tidak dapat diselesaikan sementara waktu. | Memuat petunjuk bahwa gateway sedang sibuk dan client disarankan mencoba kembali. |
+
+### B. Analisis & Prinsip Penanganan Status Code Kritis
+1. **Mengapa Menggunakan `409 Conflict` untuk Kasus Double Booking (Bukan 400 atau 422)?**  
+   Request reservasi yang dikirim oleh penyewa sudah memenuhi seluruh kaidah validasi tipe data dan format tanggal (`422` lolos). Format JSON yang dikirimkan pun utuh dan benar (`400` lolos). Namun, pada lapisan transaksi atomik database (InnoDB Unique Constraint `court_id, slot_start`), record slot tersebut sudah dikunci oleh penyewa lain sepersekian detik sebelumnya. Sesuai RFC 9110, `409 Conflict` adalah status yang paling akurat untuk mengabarkan bentrok kondisi konkurensi antar-pengguna.
+2. **Pembedaan Tegas Antara `401 Unauthorized` vs `403 Forbidden`:**  
+   - `401 Unauthorized` menyangkut **Autentikasi (Siapa Anda?)**: Client belum membuktikan identitasnya atau token kedaluwarsa. Client dapat memperbaiki request dengan menyertakan token yang valid.  
+   - `403 Forbidden` menyangkut **Otorisasi (Apa Hak Anda?)**: Identitas pengguna sudah terverifikasi secara sah, namun otorisasi peran (*Role / Policy Gate*) menyatakan pengguna dilarang memanipulasi entitas tersebut. Mengirim ulang kredensial yang sama tidak akan mengubah hasil.
+3. **Mengapa Validasi Form Menghasilkan `422 Unprocessable Content` (Bukan 400)?**  
+   Standar REST modern membedakan kesalahan level transportasi/sintaks (`400 Bad Request` untuk JSON corrupt/malformed) dengan kesalahan level logika domain aplikasi (`422 Unprocessable Content` untuk validasi kolom input). Hal ini memudahkan *frontend library* seperti Formik atau Vue/React Hook Form memetakan *field error* secara otomatis ke elemen antarmuka pengguna.
+
+---
+
 ## 📦 Representasi Data & Format Response Standar
 
 ### 1. Struktur Response Envelope Standar (Laravel Resource)
 ```json
-// Sukses Item Tunggal (GET /api/v1/venues/1)
+// 1. Sukses Item Tunggal (GET /api/v1/venues/1)
 {
   "status": "success",
   "data": {
@@ -169,7 +200,7 @@ Hasil evaluasi dan penilaian rancangan API SportVenue mengacu pada 8 butir stand
   }
 }
 
-// Sukses Koleksi dengan Pagination (GET /api/v1/venues?page=1&per_page=2)
+// 2. Sukses Koleksi dengan Pagination (GET /api/v1/venues?page=1&per_page=2)
 {
   "status": "success",
   "data": [
@@ -200,7 +231,7 @@ Hasil evaluasi dan penilaian rancangan API SportVenue mengacu pada 8 butir stand
   }
 }
 
-// Format Error Terstandar (422 Validasi)
+// 3. Format Error Terstandar (422 Validasi)
 {
   "status": "error",
   "message": "Data yang dikirim tidak valid.",
@@ -209,7 +240,7 @@ Hasil evaluasi dan penilaian rancangan API SportVenue mengacu pada 8 butir stand
   }
 }
 
-// Format Error Aturan Bisnis (409 Conflict)
+// 4. Format Error Aturan Bisnis (409 Conflict)
 {
   "status": "error",
   "message": "Satu atau lebih slot sudah terisi atau sedang di-hold. Silakan pilih slot lain.",
@@ -228,3 +259,5 @@ Hasil evaluasi dan penilaian rancangan API SportVenue mengacu pada 8 butir stand
    Menggunakan Laravel Sanctum dengan token-based authentication dan Gate/Policy berbasis kepemilikan data (`owner_id` venue harus cocok dengan `auth()->id()`).
 4. **Dukungan PUT vs PATCH:**  
    Keduanya didukung pada endpoint `/manage/courts/{id}` dan `/manage/venues/{id}`. PUT menggantikan seluruh representasi data lapangan/venue, sedangkan PATCH dipergunakan untuk pembaruan atribut tunggal secara atomik (misalnya mengubah status `is_active`).
+5. **Strategi Versioning:**  
+   Menggunakan path-based versioning (`/api/v1`) yang transparan, mudah diuji via Postman, dan aman untuk evolusi jangka panjang tanpa merusak client aplikasi mobile maupun web yang sudah berjalan.
