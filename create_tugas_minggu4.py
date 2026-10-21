@@ -82,8 +82,8 @@ def build_pdf(filename):
         'DocTitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=13.5,
-        leading=17,
+        fontSize=13,
+        leading=16.5,
         textColor=NAVY,
         spaceAfter=3
     )
@@ -93,38 +93,38 @@ def build_pdf(filename):
         parent=styles['Normal'],
         fontName='Helvetica',
         fontSize=8.5,
-        leading=12.5,
+        leading=12,
         textColor=colors.HexColor("#475569"),
-        spaceAfter=7
+        spaceAfter=6
     )
 
     h1_style = ParagraphStyle(
         'Heading1_Custom',
         parent=styles['Heading1'],
         fontName='Helvetica-Bold',
-        fontSize=10.5,
-        leading=13.5,
+        fontSize=10,
+        leading=13,
         textColor=NAVY,
-        spaceBefore=5,
-        spaceAfter=4
+        spaceBefore=4,
+        spaceAfter=3
     )
 
     body_style = ParagraphStyle(
         'Body_Custom',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=7.8,
-        leading=11,
+        fontSize=7.5,
+        leading=10.5,
         textColor=TEXT_COLOR,
-        spaceAfter=4
+        spaceAfter=3
     )
 
     table_header = ParagraphStyle(
         'TH',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=7.2,
-        leading=9,
+        fontSize=7,
+        leading=8.8,
         textColor=colors.white,
         alignment=1
     )
@@ -133,8 +133,8 @@ def build_pdf(filename):
         'TD',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=7,
-        leading=9.2,
+        fontSize=6.8,
+        leading=8.8,
         textColor=TEXT_COLOR
     )
 
@@ -155,7 +155,7 @@ def build_pdf(filename):
         parent=styles['Normal'],
         fontName='Courier',
         fontSize=6.5,
-        leading=8.5,
+        leading=8.2,
         textColor=colors.HexColor("#0F172A")
     )
 
@@ -168,9 +168,8 @@ def build_pdf(filename):
     story.append(Paragraph("<b>Mata Kuliah:</b> Pemrograman Web Service (Minggu ke-4) &nbsp;|&nbsp; <b>Dosen Pengampu:</b> Zaenul Arif, S.Kom., M.Kom.<br/>"
                            "<b>Topik:</b> REST API Design: Resource, Endpoint, CRUD, Filtering, Pagination &nbsp;|&nbsp; <b>Milestone:</b> M2 – API Blueprint<br/>"
                            "<b>Platform:</b> SportVenue — Platform Web Service Booking Lapangan Olahraga Online", subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=NAVY, spaceAfter=6))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=NAVY, spaceAfter=5))
 
-    # Identitas Tim Box
     meta_data = [
         [
             Paragraph("<b>Identitas Kelompok:</b>", table_cell_bold),
@@ -203,32 +202,32 @@ def build_pdf(filename):
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_meta)
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 5))
 
     # 20.1 Aktivitas 1
-    story.append(Paragraph("20.1 Aktivitas 1 – Pemodelan Resource (Koreksi & Sinkronisasi Total)", h1_style))
-    story.append(Paragraph("Resource diturunkan secara presisi dari entitas bisnis SportVenue (Modul Ajar Point 9.3: <i>Resource tidak harus sama dengan tabel</i>). Resource adalah model yang dilihat client melalui URI:", body_style))
+    story.append(Paragraph("20.1 Aktivitas 1 – Pemodelan Resource (Tersinkronisasi Penuh dengan ERD)", h1_style))
+    story.append(Paragraph("Resource diturunkan secara presisi dari entitas bisnis SportVenue (Modul Ajar Point 9.3: <i>Resource tidak harus sama dengan tabel</i>). Kolom fisik database dan atribut virtual turunan telah diselaraskan 100% dengan ERD aplikasi:", body_style))
 
     res_headers = [
         Paragraph("No", table_header),
         Paragraph("Resource URI (Jamak)", table_header),
         Paragraph("Tabel DB", table_header),
-        Paragraph("Atribut Utama", table_header),
+        Paragraph("Atribut Fisik Database & Field Turunan", table_header),
         Paragraph("Relasi Antar Resource", table_header),
         Paragraph("Jenis Resource", table_header)
     ]
     res_rows = [
         res_headers,
-        [Paragraph("1", table_cell_center), Paragraph("<b>users</b>", table_cell), Paragraph("<code>users</code>", table_cell), Paragraph("id, name, email, phone, role, status, email_verified_at, created_at", table_cell), Paragraph("1 : N ke venues (pengelola)<br/>1 : N ke bookings (penyewa)", table_cell), Paragraph("Collection", table_cell_center)],
-        [Paragraph("2", table_cell_center), Paragraph("<b>venues</b>", table_cell), Paragraph("<code>venues</code>", table_cell), Paragraph("id, owner_id, name, slug, address, city, phone, dp_percent, cancel_free_hours, cancel_refund_percent, is_active", table_cell), Paragraph("N : 1 ke users (owner)<br/>1 : N ke courts", table_cell), Paragraph("Collection", table_cell_center)],
+        [Paragraph("1", table_cell_center), Paragraph("<b>users</b>", table_cell), Paragraph("<code>users</code>", table_cell), Paragraph("id, name, email, phone, password, role, status, email_verified_at, created_at", table_cell), Paragraph("1 : N ke venues (pengelola)<br/>1 : N ke bookings (penyewa)", table_cell), Paragraph("Collection", table_cell_center)],
+        [Paragraph("2", table_cell_center), Paragraph("<b>venues</b>", table_cell), Paragraph("<code>venues</code>", table_cell), Paragraph("id, owner_id, name, slug, description, address, city, phone, dp_percent, cancel_free_hours, cancel_refund_percent, image_url", table_cell), Paragraph("N : 1 ke users (owner)<br/>1 : N ke courts", table_cell), Paragraph("Collection", table_cell_center)],
         [Paragraph("3", table_cell_center), Paragraph("<b>courts</b>", table_cell), Paragraph("<code>courts</code>", table_cell), Paragraph("id, venue_id, name, sport_type, is_active, created_at", table_cell), Paragraph("N : 1 ke venues<br/>1 : N ke prices, operating-hours, blocks, bookings", table_cell), Paragraph("Sub-resource /<br/>Collection", table_cell_center)],
-        [Paragraph("4", table_cell_center), Paragraph("<b>prices</b>", table_cell), Paragraph("<code>court_prices</code>", table_cell), Paragraph("id, court_id, day_type, start_time, end_time, price", table_cell), Paragraph("N : 1 ke courts", table_cell), Paragraph("Sub-resource", table_cell_center)],
+        [Paragraph("4", table_cell_center), Paragraph("<b>prices</b>", table_cell), Paragraph("<code>court_prices</code>", table_cell), Paragraph("id, court_id, day_type, start_time, end_time, price, created_at", table_cell), Paragraph("N : 1 ke courts", table_cell), Paragraph("Sub-resource", table_cell_center)],
         [Paragraph("5", table_cell_center), Paragraph("<b>operating-hours</b>", table_cell), Paragraph("<code>operating_hours</code>", table_cell), Paragraph("id, court_id, day_of_week, open_time, close_time, slot_duration_minutes", table_cell), Paragraph("N : 1 ke courts", table_cell), Paragraph("Sub-resource", table_cell_center)],
         [Paragraph("6", table_cell_center), Paragraph("<b>blocks</b>", table_cell), Paragraph("<code>schedule_blocks</code>", table_cell), Paragraph("id, court_id, start_at, end_at, reason, created_at", table_cell), Paragraph("N : 1 ke courts", table_cell), Paragraph("Sub-resource", table_cell_center)],
-        [Paragraph("7", table_cell_center), Paragraph("<b>availability</b>", table_cell), Paragraph("<i>(Kalkulasi)</i>", table_cell), Paragraph("court_id, play_date, slots [slot_time, status, price]", table_cell), Paragraph("Turunan dari courts (kalkulasi slot terisi & blokir)", table_cell), Paragraph("Sub-resource<br/>(Virtual / Read-Only)", table_cell_center)],
-        [Paragraph("8", table_cell_center), Paragraph("<b>bookings</b>", table_cell), Paragraph("<code>bookings</code>", table_cell), Paragraph("id, code, user_id, court_id, total_price, dp_amount, status, expires_at, cancelled_at, refund_amount", table_cell), Paragraph("N : 1 ke users, N : 1 ke courts<br/>1 : N ke booking_slots, 1 : N ke payments", table_cell), Paragraph("Collection", table_cell_center)],
+        [Paragraph("7", table_cell_center), Paragraph("<b>availability</b>", table_cell), Paragraph("<i>(Kalkulasi)</i>", table_cell), Paragraph("court_id, play_date, slots [slot_time, status, price]<br/><i>(Dihasilkan dari jam operasional, blokir, dan slot terisi)</i>", table_cell), Paragraph("Turunan dari courts (kalkulasi slot terisi & blokir)", table_cell), Paragraph("Sub-resource<br/>(Virtual / Read-Only)", table_cell_center)],
+        [Paragraph("8", table_cell_center), Paragraph("<b>bookings</b>", table_cell), Paragraph("<code>bookings</code>", table_cell), Paragraph("id, code, user_id, court_id, total_price, dp_amount, status, expires_at, cancelled_at, refund_amount<br/><i>(Tgl main diturunkan dari booking_slots.slot_start)</i>", table_cell), Paragraph("N : 1 ke users, N : 1 ke courts<br/>1 : N ke booking_slots, 1 : N ke payments", table_cell), Paragraph("Collection", table_cell_center)],
         [Paragraph("9", table_cell_center), Paragraph("<b>payments</b>", table_cell), Paragraph("<code>payments</code>", table_cell), Paragraph("id, booking_id, order_id, type, amount, status, payment_type, snap_token, snap_redirect_url, paid_at", table_cell), Paragraph("N : 1 ke bookings", table_cell), Paragraph("Sub-resource /<br/>Collection", table_cell_center)],
-        [Paragraph("10", table_cell_center), Paragraph("<b>booking_slots</b>", table_cell), Paragraph("<code>booking_slots</code>", table_cell), Paragraph("id, booking_id, court_id, slot_start, slot_end, price", table_cell), Paragraph("N : 1 ke bookings<br/>unique(court_id, slot_start)", table_cell), Paragraph("Internal Engine<br/>(Anti Double Booking)", table_cell_center)],
+        [Paragraph("10", table_cell_center), Paragraph("<b>booking_slots</b>", table_cell), Paragraph("<code>booking_slots</code>", table_cell), Paragraph("id, booking_id, court_id, slot_start, slot_end, price, created_at", table_cell), Paragraph("N : 1 ke bookings<br/>unique(court_id, slot_start)", table_cell), Paragraph("Internal Engine<br/>(Anti Double Booking)", table_cell_center)],
         [Paragraph("11", table_cell_center), Paragraph("<b>me</b>", table_cell), Paragraph("<code>users</code>", table_cell), Paragraph("id, name, email, phone, role, status", table_cell), Paragraph("N/A (merujuk ke pengguna login aktif)", table_cell), Paragraph("Singleton", table_cell_center)],
     ]
     t_res = Table(res_rows, colWidths=[16, 75, 65, 165, 125, 77])
@@ -238,14 +237,14 @@ def build_pdf(filename):
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
         ('INNERGRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 1.8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 1.8),
+        ('TOPPADDING', (0,0), (-1,-1), 1.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 1.5),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
         ('RIGHTPADDING', (0,0), (-1,-1), 3),
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
     ]))
     story.append(t_res)
-    story.append(Spacer(1, 5))
+    story.append(Spacer(1, 4))
 
     erd_box = """+-------------+ 1       N +-------------+ 1       N +-------------+ 1       N +-----------------+
 |    users    | --------> |   venues    | --------> |   courts    | --------> | prices (prices) |
@@ -265,16 +264,34 @@ def build_pdf(filename):
 |  payments   | (Midtrans Snap Token & Webhook Callback Idempotent)
 +-------------+"""
     
-    t_erd = Table([[Paragraph(f"<b>Diagram Relasi Sederhana Antar-Resource (ERD Ringkas):</b><br/><pre>{erd_box}</pre>", code_style)]], colWidths=[523])
+    t_erd = Table([[Paragraph(f"<b>Diagram Relasi Antar-Resource (ERD Ringkas):</b><br/><pre>{erd_box}</pre>", code_style)]], colWidths=[523])
     t_erd.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F1F5F9")),
         ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_erd)
+
+    # Catatan Selaras ERD
+    note_erd = """<b>Catatan Penyelarasan Atribut Fisik Database vs Field Turunan:</b><br/>
+• <b>venues.is_active:</b> Status aktif dikontrol di tingkat lapangan (<code>courts.is_active</code>). Venue tidak memiliki kolom <code>is_active</code>.<br/>
+• <b>play_date:</b> Tidak ada kolom <code>play_date</code> di tabel <code>bookings</code>; tanggal main tersimpan di baris slot <code>booking_slots.slot_start</code>.<br/>
+• <b>Detail courts:</b> Lapangan hanya memuat <code>name</code>, <code>sport_type</code>, <code>is_active</code>. Foto fasilitas berada di <code>venues.image_url</code>.<br/>
+• <b>starting_price:</b> Field virtual dinamis hasil agregasi <code>MIN(court_prices.price)</code>, bukan kolom fisik tabel <code>venues</code>."""
+    t_note_erd = Table([[Paragraph(note_erd, body_style)]], colWidths=[523])
+    t_note_erd.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#FEF3C7")),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#FCD34D")),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
+    ]))
+    story.append(Spacer(1, 3))
+    story.append(t_note_erd)
 
     story.append(PageBreak())
 
@@ -282,7 +299,7 @@ def build_pdf(filename):
     # HALAMAN 2: 20.2 AKTIVITAS 2 (ENDPOINT MATRIX)
     # ==========================================
     story.append(Paragraph("20.2 Aktivitas 2 – Endpoint Matrix (20 menit)", h1_style))
-    story.append(Paragraph("Disusun 26 endpoint RESTful yang selaras 100% dengan resource dan modul aplikasi SportVenue. Setiap baris memuat HTTP method semantik, path URI terstandar, fungsi operasi bisnis, aktor pengguna, serta status sukses dan status gagal yang relevan:", body_style))
+    story.append(Paragraph("Disusun 26 endpoint RESTful yang selaras 100% dengan resource dan model database SportVenue. Setiap baris memuat HTTP method semantik, path URI terstandar, fungsi operasi bisnis, aktor pengguna, serta status sukses dan status gagal yang relevan:", body_style))
 
     ep_headers = [
         Paragraph("No", table_header),
@@ -299,10 +316,10 @@ def build_pdf(filename):
         ("2", "POST", "/auth/login", "Autentikasi akun & penerbitan Sanctum Bearer Token", "Publik", "200 OK", "401, 422"),
         ("3", "POST", "/auth/logout", "Revokasi token autentikasi aktif pengguna", "Login", "204 No Content", "401"),
         ("4", "GET", "/me", "Mengambil profil pengguna yang sedang login (singleton)", "Login", "200 OK", "401"),
-        ("5", "GET", "/venues", "Katalog venue mitra dengan filter city, sport_type, q, pagination", "Publik", "200 OK", "400, 422"),
+        ("5", "GET", "/venues", "Katalog venue mitra dengan filter city, sport, min/max price, search", "Publik", "200 OK", "400, 422"),
         ("6", "GET", "/venues/{id}", "Detail satu venue beserta daftar fasilitas lapangan fisiknya", "Publik", "200 OK", "404"),
         ("7", "GET", "/venues/{id}/courts", "Daftar lapangan pada venue tertentu (sub-resource)", "Publik", "200 OK", "404"),
-        ("8", "GET", "/courts/{id}", "Detail spesifikasi teknis lapangan (tipe lantai, ukuran, foto)", "Publik", "200 OK", "404"),
+        ("8", "GET", "/courts/{id}", "Detail lapangan fisik (nama, cabang olahraga, status is_active, relasi harga)", "Publik", "200 OK", "404"),
         ("9", "GET", "/courts/{id}/prices", "Daftar struktur harga sewa lapangan (reguler, peak, weekend)", "Publik", "200 OK", "404"),
         ("10", "GET", "/courts/{id}/operating-hours", "Daftar jam buka-tutup operasional lapangan seminggu penuh", "Publik", "200 OK", "404"),
         ("11", "GET", "/courts/{id}/availability", "Matriks ketersediaan slot jam & tarif per tanggal (YYYY-MM-DD)", "Publik", "200 OK", "404, 422"),
@@ -312,12 +329,12 @@ def build_pdf(filename):
         ("15", "POST", "/bookings/{id}/payments", "Membuat transaksi DP Midtrans Snap token & redirect URL", "Penyewa", "201 Created", "401, 403, 409"),
         ("16", "POST", "/bookings/{id}/cancellation", "Membatalkan booking & hitung refund otomatis kebijakan venue", "Penyewa", "200 OK", "401, 403, 409"),
         ("17", "POST", "/payments/webhook/midtrans", "Callback webhook notifikasi gateway (verifikasi HMAC SHA-512)", "Midtrans", "200 OK", "401, 403"),
-        ("18", "POST", "/manage/venues", "Mendaftarkan venue baru milik pengelola", "Pengelola", "201 Created", "401, 403, 422"),
-        ("19", "PUT", "/manage/venues/{id}", "Memperbarui profil venue secara menyeluruh (alamat, kebijakan DP)", "Pengelola", "200 OK", "401, 403, 404, 422"),
+        ("18", "POST", "/manage/venues", "Mendaftarkan venue baru milik mitra pengelola", "Pengelola", "201 Created", "401, 403, 422"),
+        ("19", "PUT", "/manage/venues/{id}", "Memperbarui profil venue secara menyeluruh (alamat, kebijakan DP/refund)", "Pengelola", "200 OK", "401, 403, 404, 422"),
         ("20", "DELETE", "/manage/venues/{id}", "Menghapus/menonaktifkan venue dari platform", "Pengelola", "204 No Content", "401, 403, 404, 409"),
         ("21", "POST", "/manage/courts", "Menambah lapangan baru pada venue milik pengelola", "Pengelola", "201 Created", "401, 403, 422"),
-        ("22", "PUT", "/manage/courts/{id}", "Memperbarui spesifikasi lapangan secara menyeluruh", "Pengelola", "200 OK", "401, 403, 404, 422"),
-        ("23", "PATCH", "/manage/courts/{id}", "Mengubah status aktif/non-aktif lapangan parsial", "Pengelola", "200 OK", "401, 403, 404"),
+        ("22", "PUT", "/manage/courts/{id}", "Memperbarui data lapangan fisik secara menyeluruh", "Pengelola", "200 OK", "401, 403, 404, 422"),
+        ("23", "PATCH", "/manage/courts/{id}", "Mengubah status aktif/non-aktif lapangan parsial (is_active)", "Pengelola", "200 OK", "401, 403, 404"),
         ("24", "DELETE", "/manage/courts/{id}", "Menghapus/menonaktifkan lapangan fisik dari sistem", "Pengelola", "204 No Content", "401, 403, 404, 409"),
         ("25", "POST", "/manage/prices", "Menambahkan aturan konfigurasi tarif sewa lapangan", "Pengelola", "201 Created", "401, 403, 422"),
         ("26", "DELETE", "/manage/prices/{id}", "Menghapus aturan konfigurasi tarif sewa", "Pengelola", "204 No Content", "401, 403, 404"),
@@ -363,7 +380,7 @@ def build_pdf(filename):
     # HALAMAN 3: 20.3 AKTIVITAS 3 & 20.4 AKTIVITAS 4
     # ==========================================
     story.append(Paragraph("20.3 Aktivitas 3 – Desain Query untuk Endpoint Collection (15 menit)", h1_style))
-    story.append(Paragraph("Ditetapkan query parameter standar pada 3 endpoint collection utama untuk menyaring (<i>filter</i>), mencari (<i>search</i>), mengurutkan (<i>sort</i>), dan memaginasi (<i>pagination</i>) dengan whitelist ketat:", body_style))
+    story.append(Paragraph("Ditetapkan query parameter standar pada 3 endpoint collection utama untuk menyaring (<i>filter</i>), mencari (<i>search</i>), mengurutkan (<i>sort</i>), dan memaginasi (<i>pagination</i>) dengan whitelist yang selaras dengan skema database:", body_style))
 
     q_headers = [
         Paragraph("Endpoint Collection", table_header),
@@ -376,16 +393,16 @@ def build_pdf(filename):
         q_headers,
         [
             Paragraph("<b>GET /venues</b><br/><code>/api/v1/venues</code>", table_cell),
-            Paragraph("• <code>city</code> (string)<br/>• <code>sport_type</code> (futsal, badminton, basket, mini_soccer)<br/>• <code>is_active</code> (boolean)<br/>• <code>min_price</code>, <code>max_price</code>", table_cell),
+            Paragraph("• <code>city</code> (string)<br/>• <code>sport</code> / <code>sport_type</code> (futsal, badminton, basket, mini_soccer)<br/>• <code>min_price</code>, <code>max_price</code><br/><i>(Filter olahraga & harga dievaluasi via relasi courts.courtPrices)</i>", table_cell),
             Paragraph("<code>q</code><br/>(mencari pada <code>name</code>, <code>address</code>, <code>city</code>)", table_cell),
-            Paragraph("• Default: <code>name</code><br/>• Whitelist: <code>name</code>, <code>-name</code>, <code>created_at</code>, <code>-created_at</code>, <code>starting_price</code>, <code>-starting_price</code>", table_cell),
+            Paragraph("• Default: <code>name</code><br/>• Whitelist: <code>name</code>, <code>-name</code>, <code>created_at</code>, <code>-created_at</code>, <code>starting_price*</code>, <code>-starting_price*</code><br/><i>(*Ket: starting_price diurutkan via subquery agregasi MIN(court_prices.price))</i>", table_cell),
             Paragraph("Model: Offset-based<br/>Param: <code>page</code>, <code>per_page</code><br/>• Default: <b>10</b><br/>• Maksimum: <b>50</b>", table_cell)
         ],
         [
             Paragraph("<b>GET /bookings</b><br/><code>/api/v1/bookings</code>", table_cell),
-            Paragraph("• <code>status</code> (PENDING_PAYMENT, CONFIRMED, COMPLETED, CANCELLED, EXPIRED)<br/>• <code>court_id</code> (integer)<br/>• <code>date_from</code>, <code>date_to</code>", table_cell),
+            Paragraph("• <code>status</code> (PENDING_PAYMENT, CONFIRMED, COMPLETED, CANCELLED, EXPIRED, NO_SHOW)<br/>• <code>court_id</code> (integer)<br/>• <code>date_from</code>, <code>date_to</code><br/><i>(Filter rentang tgl dievaluasi via booking_slots.slot_start)</i>", table_cell),
             Paragraph("<code>q</code><br/>(mencari kode booking: <code>code</code>, misal <code>BK-20261011</code>)", table_cell),
-            Paragraph("• Default: <code>-created_at</code><br/>• Whitelist: <code>created_at</code>, <code>-created_at</code>, <code>play_date</code>, <code>-play_date</code>, <code>total_price</code>", table_cell),
+            Paragraph("• Default: <code>-created_at</code><br/>• Whitelist: <code>created_at</code>, <code>-created_at</code>, <code>total_price</code>, <code>-total_price</code>, <code>expires_at</code>, <code>-expires_at</code>", table_cell),
             Paragraph("Model: Offset-based<br/>Param: <code>page</code>, <code>per_page</code><br/>• Default: <b>15</b><br/>• Maksimum: <b>100</b>", table_cell)
         ],
         [
@@ -410,7 +427,7 @@ def build_pdf(filename):
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
     ]))
     story.append(t_q)
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
 
     # 20.4 Aktivitas 4
     story.append(Paragraph("20.4 Aktivitas 4 – Peer Review & Quality Checklist (10 menit)", h1_style))
@@ -430,7 +447,7 @@ def build_pdf(filename):
         [Paragraph("4", table_cell_center), Paragraph("POST → 201, DELETE → 204, dan status gagal relevan dicantumkan", table_cell), Paragraph("<b>[ X ] Ya</b>", table_cell_center), Paragraph("Create menghasilkan <code>201 Created</code> disertai header Location; Delete menghasilkan <code>204 No Content</code>. Status gagal (400, 401, 403, 404, 409, 422) didefinisikan lengkap.", table_cell)],
         [Paragraph("5", table_cell_center), Paragraph("Nesting maksimal 2 tingkat", table_cell), Paragraph("<b>[ X ] Ya</b>", table_cell_center), Paragraph("Nesting dibatasi: <code>/venues/{id}/courts</code>, <code>/courts/{id}/prices</code>. Setelah item memiliki ID unik global, akses dilakukan secara flat: <code>/courts/{id}</code>, <code>/bookings/{id}</code>.", table_cell)],
         [Paragraph("6", table_cell_center), Paragraph("Setiap collection memiliki pagination dengan batas maksimum", table_cell), Paragraph("<b>[ X ] Ya</b>", table_cell_center), Paragraph("Setiap collection dibatasi default 10–20 dan hard-cap max 50–100 untuk menangkal celah OWASP <i>Unrestricted Resource Consumption</i>.", table_cell)],
-        [Paragraph("7", table_cell_center), Paragraph("Filter/sort memakai query parameter dengan whitelist", table_cell), Paragraph("<b>[ X ] Ya</b>", table_cell_center), Paragraph("Filter dan sort dioperasikan di query string dengan whitelist ketat untuk mencegah SQL error atau kebocoran kolom internal sensitif.", table_cell)],
+        [Paragraph("7", table_cell_center), Paragraph("Filter/sort memakai query parameter dengan whitelist", table_cell), Paragraph("<b>[ X ] Ya</b>", table_cell_center), Paragraph("Filter dan sort dioperasikan di query string dengan whitelist ketat yang selaras kolom fisik ERD untuk mencegah SQL error atau kebocoran kolom sensitif.", table_cell)],
         [Paragraph("8", table_cell_center), Paragraph("Format error seragam", table_cell), Paragraph("<b>[ X ] Ya</b>", table_cell_center), Paragraph("Seluruh skenario kegagalan memakai amplop format seragam: <code>{ status: 'error', message: '...', errors: { ... } }</code>.", table_cell)],
     ]
     t_chk = Table(chk_rows, colWidths=[20, 185, 65, 253])
@@ -440,27 +457,29 @@ def build_pdf(filename):
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
         ('INNERGRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 2.5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
+        ('TOPPADDING', (0,0), (-1,-1), 2.2),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.2),
         ('LEFTPADDING', (0,0), (-1,-1), 4),
         ('RIGHTPADDING', (0,0), (-1,-1), 4),
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
     ]))
     story.append(t_chk)
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 5))
 
-    action_text = """<b>Tindak Lanjut Perbaikan Pasca Peer Review:</b><br/>
-1. Menambahkan validasi regex ISO 8601 <code>YYYY-MM-DD</code> pada endpoint availability <code>/courts/{id}/availability?date=</code>.<br/>
-2. Membatasi representasi JSON DTO agar tidak pernah mengekspos atribut sensitif database internal (password, remember_token) demi kepatuhan OWASP API3 (Broken Object Property Level Authorization).<br/>
-3. Memastikan arsitektur <i>Anti Double Booking</i> (§9.2 PRD) selalu merespons dengan HTTP status <code>409 Conflict</code> saat terjadi tabrakan transaksi reservasi konkuren."""
+    action_text = """<b>Tindak Lanjut Perbaikan Pasca Review & Masukan Penyelarasan ERD:</b><br/>
+1. <b>Penyelarasan Kolom play_date:</b> Dihapus dari whitelist sort tabel bookings dan dicatat secara transparan sebagai nilai relasional dari <code>booking_slots.slot_start</code>.<br/>
+2. <b>Penyelarasan venues.is_active:</b> Dihilangkan dari atribut tabel venues dan filter <code>GET /venues</code>, karena keaktifan diatur di level lapangan <code>courts.is_active</code>.<br/>
+3. <b>Deskripsi Detail Lapangan:</b> Disesuaikan tepat dengan kolom fisik <code>courts</code> (nama, cabang olahraga, status aktif); foto berada di <code>venues.image_url</code>.<br/>
+4. <b>Klarifikasi starting_price:</b> Dicatat secara eksplisit bahwa <code>starting_price</code> adalah nilai turunan / field virtual agregasi <code>MIN(court_prices.price)</code>.<br/>
+5. <b>Validasi & Keamanan:</b> Validasi format <code>YYYY-MM-DD</code> pada availability serta pencegahan OWASP API3 (menghilangkan password/remember_token)."""
     t_action = Table([[Paragraph(action_text, body_style)]], colWidths=[523])
     t_action.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#EFF6FF")),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#93C5FD")),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-        ('LEFTPADDING', (0,0), (-1,-1), 6),
-        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_action)
 
@@ -479,10 +498,14 @@ def build_pdf(filename):
     "id": 1,
     "name": "Arena Garuda Futsal",
     "slug": "arena-garuda-futsal",
+    "description": "Gelanggang futsal berstandar nasional",
+    "address": "Jl. Martoloyo No. 12",
     "city": "Tegal",
+    "phone": "081234567890",
     "dp_percent": 30,
     "cancel_free_hours": 24,
-    "cancel_refund_percent": 50
+    "cancel_refund_percent": 50,
+    "image_url": "https://sportvenue.test/storage/venues/garuda.jpg"
   }
 }
 
@@ -499,8 +522,18 @@ def build_pdf(filename):
 {
   "status": "success",
   "data": [
-    { "id": 1, "name": "Arena Garuda Futsal", "city": "Tegal", "starting_price": 120000 },
-    { "id": 2, "name": "GOR Satria Badminton", "city": "Tegal", "starting_price": 40000 }
+    { 
+      "id": 1, 
+      "name": "Arena Garuda Futsal", 
+      "city": "Tegal", 
+      "starting_price": 120000 
+    },
+    { 
+      "id": 2, 
+      "name": "GOR Satria Badminton", 
+      "city": "Tegal", 
+      "starting_price": 40000 
+    }
   ],
   "links": {
     "first": "http://localhost:8000/api/v1/venues?page=1",
@@ -615,7 +648,7 @@ def build_docx(filename):
 
     # 20.1 Aktivitas 1
     h1 = doc.add_paragraph()
-    r = h1.add_run("20.1 Aktivitas 1 – Pemodelan Resource (Koreksi & Sinkronisasi Total)")
+    r = h1.add_run("20.1 Aktivitas 1 – Pemodelan Resource (Koreksi & Sinkronisasi ERD)")
     r.bold = True
     r.font.size = Pt(11)
     r.font.color.rgb = RGBColor(30, 58, 138)
@@ -625,13 +658,13 @@ def build_docx(filename):
     res_data = [
         ["No", "Resource URI", "Tabel DB", "Atribut Utama", "Relasi Antar Entitas", "Jenis Resource"],
         ["1", "users", "users", "id, name, email, phone, role, status, email_verified_at, created_at", "1 : N ke venues (pengelola)\n1 : N ke bookings (penyewa)", "Collection"],
-        ["2", "venues", "venues", "id, owner_id, name, slug, address, city, phone, dp_percent, cancel_free_hours, cancel_refund_percent, is_active", "N : 1 ke users (owner)\n1 : N ke courts", "Collection"],
+        ["2", "venues", "venues", "id, owner_id, name, slug, description, address, city, phone, dp_percent, cancel_free_hours, cancel_refund_percent, image_url", "N : 1 ke users (owner)\n1 : N ke courts", "Collection"],
         ["3", "courts", "courts", "id, venue_id, name, sport_type, is_active, created_at", "N : 1 ke venues\n1 : N ke prices, operating-hours, blocks, bookings", "Sub-resource / Collection"],
-        ["4", "prices", "court_prices", "id, court_id, day_type, start_time, end_time, price", "N : 1 ke courts", "Sub-resource"],
+        ["4", "prices", "court_prices", "id, court_id, day_type, start_time, end_time, price, created_at", "N : 1 ke courts", "Sub-resource"],
         ["5", "operating-hours", "operating_hours", "id, court_id, day_of_week, open_time, close_time, slot_duration_minutes", "N : 1 ke courts", "Sub-resource"],
         ["6", "blocks", "schedule_blocks", "id, court_id, start_at, end_at, reason, created_at", "N : 1 ke courts", "Sub-resource"],
         ["7", "availability", "(Kalkulasi)", "court_id, play_date, slots [slot_time, status, price]", "Turunan dari courts (kalkulasi slot & blokir)", "Sub-resource (Virtual / Read-Only)"],
-        ["8", "bookings", "bookings", "id, code, user_id, court_id, total_price, dp_amount, status, expires_at, cancelled_at, refund_amount", "N : 1 ke users, N : 1 ke courts\n1 : N ke booking_slots, 1 : N ke payments", "Collection"],
+        ["8", "bookings", "bookings", "id, code, user_id, court_id, total_price, dp_amount, status, expires_at, cancelled_at, refund_amount (tgl main via booking_slots)", "N : 1 ke users, N : 1 ke courts\n1 : N ke booking_slots, 1 : N ke payments", "Collection"],
         ["9", "payments", "payments", "id, booking_id, order_id, type, amount, status, payment_type, snap_token, snap_redirect_url, paid_at", "N : 1 ke bookings", "Sub-resource / Collection"],
         ["10", "booking_slots", "booking_slots", "id, booking_id, court_id, slot_start, slot_end, price", "N : 1 ke bookings\nunique(court_id, slot_start)", "Internal Engine (Anti Double Booking)"],
         ["11", "me", "users", "id, name, email, phone, role, status", "N/A (merujuk ke pengguna login)", "Singleton"],
@@ -669,10 +702,10 @@ def build_docx(filename):
         ["2", "POST", "/auth/login", "Autentikasi akun & penerbitan token Sanctum", "Publik", "200 OK", "401, 422"],
         ["3", "POST", "/auth/logout", "Revokasi token autentikasi aktif pengguna", "Login", "204 No Content", "401"],
         ["4", "GET", "/me", "Mengambil profil pengguna yang login (singleton)", "Login", "200 OK", "401"],
-        ["5", "GET", "/venues", "Katalog venue mitra dengan filter city, sport_type, q", "Publik", "200 OK", "400, 422"],
+        ["5", "GET", "/venues", "Katalog venue mitra dengan filter city, sport, min/max price", "Publik", "200 OK", "400, 422"],
         ["6", "GET", "/venues/{id}", "Detail satu venue beserta fasilitas lapangannya", "Publik", "200 OK", "404"],
         ["7", "GET", "/venues/{id}/courts", "Daftar lapangan pada venue tertentu", "Publik", "200 OK", "404"],
-        ["8", "GET", "/courts/{id}", "Detail spesifikasi teknis lapangan fisik", "Publik", "200 OK", "404"],
+        ["8", "GET", "/courts/{id}", "Detail lapangan fisik (nama, cabang olahraga, status is_active)", "Publik", "200 OK", "404"],
         ["9", "GET", "/courts/{id}/prices", "Daftar struktur harga lapangan (reguler, peak, weekend)", "Publik", "200 OK", "404"],
         ["10", "GET", "/courts/{id}/operating-hours", "Daftar jam operasional lapangan seminggu penuh", "Publik", "200 OK", "404"],
         ["11", "GET", "/courts/{id}/availability", "Matriks ketersediaan slot jam & tarif per tanggal", "Publik", "200 OK", "404, 422"],
@@ -683,11 +716,11 @@ def build_docx(filename):
         ["16", "POST", "/bookings/{id}/cancellation", "Batalkan booking & hitung refund otomatis kebijakan venue", "Penyewa", "200 OK", "401, 403, 409"],
         ["17", "POST", "/payments/webhook/midtrans", "Callback notifikasi gateway (verifikasi HMAC SHA-512)", "Midtrans", "200 OK", "401, 403"],
         ["18", "POST", "/manage/venues", "Mendaftarkan venue baru milik pengelola", "Pengelola", "201 Created", "401, 403, 422"],
-        ["19", "PUT", "/manage/venues/{id}", "Memperbarui profil venue secara menyeluruh", "Pengelola", "200 OK", "401, 403, 404, 422"],
+        ["19", "PUT", "/manage/venues/{id}", "Memperbarui profil venue secara menyeluruh (alamat, DP/refund)", "Pengelola", "200 OK", "401, 403, 404, 422"],
         ["20", "DELETE", "/manage/venues/{id}", "Menghapus/menonaktifkan venue dari platform", "Pengelola", "204 No Content", "401, 403, 404, 409"],
         ["21", "POST", "/manage/courts", "Menambah lapangan baru pada venue milik pengelola", "Pengelola", "201 Created", "401, 403, 422"],
         ["22", "PUT", "/manage/courts/{id}", "Memperbarui spesifikasi lapangan secara menyeluruh", "Pengelola", "200 OK", "401, 403, 404, 422"],
-        ["23", "PATCH", "/manage/courts/{id}", "Mengubah status aktif/non-aktif lapangan parsial", "Pengelola", "200 OK", "401, 403, 404"],
+        ["23", "PATCH", "/manage/courts/{id}", "Mengubah status aktif/non-aktif lapangan parsial (is_active)", "Pengelola", "200 OK", "401, 403, 404"],
         ["24", "DELETE", "/manage/courts/{id}", "Menghapus/menonaktifkan lapangan fisik dari sistem", "Pengelola", "204 No Content", "401, 403, 404, 409"],
         ["25", "POST", "/manage/prices", "Menambahkan aturan konfigurasi tarif sewa", "Pengelola", "201 Created", "401, 403, 422"],
         ["26", "DELETE", "/manage/prices/{id}", "Menghapus aturan konfigurasi tarif sewa", "Pengelola", "204 No Content", "401, 403, 404"],
@@ -728,8 +761,8 @@ def build_docx(filename):
 
     q_data = [
         ["Endpoint Collection", "Filter (Whitelist)", "Search", "Sort (Default & Whitelist)", "Pagination (Default / Maks)"],
-        ["GET /api/v1/venues", "city, sport_type, is_active, min_price, max_price", "q (name, address, city)", "Default: name\nWhitelist: name, -name, created_at, -created_at, starting_price, -starting_price", "Model: Offset-based\nParam: page, per_page\nDefault: 10, Maks: 50"],
-        ["GET /api/v1/bookings", "status, court_id, date_from, date_to", "q (code)", "Default: -created_at\nWhitelist: created_at, -created_at, play_date, -play_date, total_price", "Model: Offset-based\nParam: page, per_page\nDefault: 15, Maks: 100"],
+        ["GET /api/v1/venues", "city, sport, min_price, max_price (via courts.courtPrices)", "q (name, address, city)", "Default: name\nWhitelist: name, -name, created_at, -created_at, starting_price*, -starting_price* (*agregasi MIN(price))", "Model: Offset-based\nParam: page, per_page\nDefault: 10, Maks: 50"],
+        ["GET /api/v1/bookings", "status, court_id, date_from*, date_to* (*via booking_slots.slot_start)", "q (code)", "Default: -created_at\nWhitelist: created_at, -created_at, total_price, -total_price, expires_at, -expires_at", "Model: Offset-based\nParam: page, per_page\nDefault: 15, Maks: 100"],
         ["GET /api/v1/admin/users", "role, status", "q (name, email, phone)", "Default: -created_at\nWhitelist: name, -name, email, created_at, -created_at", "Model: Offset-based\nParam: page, per_page\nDefault: 20, Maks: 100"]
     ]
     t_q = doc.add_table(rows=len(q_data), cols=5)
@@ -769,7 +802,7 @@ def build_docx(filename):
         ["4", "POST → 201, DELETE → 204, dan status gagal relevan dicantumkan", "[ X ] Ya", "Create menghasilkan 201 Created; Delete menghasilkan 204 No Content. Status gagal (400, 401, 403, 404, 409, 422) didefinisikan eksplisit."],
         ["5", "Nesting maksimal 2 tingkat", "[ X ] Ya", "Nesting dibatasi: /venues/{id}/courts. Setelah item memiliki ID unik global, akses dilakukan secara flat: /courts/{id}, /bookings/{id}."],
         ["6", "Setiap collection memiliki pagination dengan batas maksimum", "[ X ] Ya", "Setiap collection dibatasi default 10–20 dan hard-cap max 50–100 untuk menangkal celah OWASP Unrestricted Resource Consumption."],
-        ["7", "Filter/sort memakai query parameter dengan whitelist", "[ X ] Ya", "Filter dan sort dioperasikan di query string dengan whitelist ketat untuk mencegah SQL error atau pembocoran kolom sensitif."],
+        ["7", "Filter/sort memakai query parameter dengan whitelist", "[ X ] Ya", "Filter dan sort dioperasikan di query string dengan whitelist ketat yang selaras kolom fisik ERD untuk mencegah SQL error atau pembocoran kolom sensitif."],
         ["8", "Format error seragam", "[ X ] Ya", "Seluruh skenario kegagalan memakai amplop format seragam: { status: 'error', message: '...', errors: { ... } }."],
     ]
     t_chk = doc.add_table(rows=len(chk_data), cols=4)
