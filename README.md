@@ -42,9 +42,6 @@ Aplikasi Web Service & Platform Booking Lapangan Olahraga berbasis **RESTful API
 - Webhook asynchronous dengan validasi signature HMAC SHA-512.
 - Endpoint sandbox simulation untuk kemudahan pengujian lokal.
 
-### 4. Interactive OpenAPI & Documentation
-- Dokumentasi RESTful API terintegrasi langsung di `/docs` dengan antarmuka OpenAPI interaktif dan contoh payload cURL & JSON.
-
 ---
 
 ## 🛠️ Persyaratan Sistem
@@ -89,7 +86,6 @@ php artisan serve
 
 Aplikasi dapat diakses melalui browser:
 - **Web UI & Home**: [http://localhost:8000](http://localhost:8000)
-- **Dokumentasi REST API**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Base Endpoint API**: [http://localhost:8000/api/v1](http://localhost:8000/api/v1)
 
 ---

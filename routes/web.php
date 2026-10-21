@@ -14,11 +14,11 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Public Discovery & Docs
+// Public Discovery
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/venues/{id}', [VenueController::class, 'show'])->name('venues.show');
-Route::get('/docs', [DocsController::class, 'index'])->name('docs');
-Route::get('/docs/postman', [DocsController::class, 'postman'])->name('docs.postman');
+Route::redirect('/docs', '/')->name('docs');
+Route::redirect('/docs/postman', '/')->name('docs.postman');
 
 // Authentication
 Route::middleware('guest')->group(function () {

@@ -65,7 +65,6 @@
                     <div>
                         <div class="flex items-center gap-1.5 font-bold tracking-tight text-slate-900 text-lg">
                             <span>SportVenue</span>
-                            <span class="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800 uppercase tracking-wider">REST API</span>
                         </div>
                         <p class="text-[11px] text-slate-500 font-medium">Platform Booking Lapangan</p>
                     </div>
@@ -76,12 +75,6 @@
             <nav class="hidden md:flex items-center gap-1">
                 <a href="{{ route('home') }}" class="rounded-lg px-3.5 py-2 text-sm font-medium {{ request()->routeIs('home') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70' }} transition">
                     Cari Lapangan
-                </a>
-                <a href="{{ route('docs') }}" class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium {{ request()->routeIs('docs*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70' }} transition">
-                    <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                    </svg>
-                    <span>Dokumentasi API</span>
                 </a>
 
                 @auth
@@ -147,8 +140,6 @@
                             @if(Auth::user()->isAdmin())
                                 <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Admin Platform</a>
                             @endif
-
-                            <a href="{{ route('docs') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dokumentasi API v1</a>
 
                             <div class="border-t border-slate-100 pt-1">
                                 <form method="POST" action="{{ route('logout') }}">
@@ -221,9 +212,8 @@
                 <div class="flex items-center gap-4">
                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 border border-emerald-200/60">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Laravel 12 REST API & Livewire 3
+                        Laravel 12 & Livewire 3
                     </span>
-                    <a href="{{ route('docs') }}" class="font-semibold text-emerald-600 hover:underline">REST API v1 Docs &rarr;</a>
                 </div>
             </div>
         </div>

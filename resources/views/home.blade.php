@@ -186,11 +186,6 @@
                         Mekanisme terpadu menjamin tepat 1 request berhasil saat ≥ 50 request paralel mencoba memesan slot yang sama.
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('docs') }}" class="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition">
-                        Lihat Spesifikasi OpenAPI &rarr;
-                    </a>
-                </div>
             </div>
 
             <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

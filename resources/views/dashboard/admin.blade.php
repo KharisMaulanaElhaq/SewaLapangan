@@ -14,12 +14,6 @@
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">Admin Platform Dashboard</h1>
         </div>
-
-        <div class="flex items-center gap-3">
-            <a href="{{ route('docs') }}" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition">
-                API Docs & Endpoint Tester &rarr;
-            </a>
-        </div>
     </div>
 
     <!-- Overview Metrics Cards -->
