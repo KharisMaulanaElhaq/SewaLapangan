@@ -6,7 +6,7 @@
 
 ---
 
-## 👥 Identitas Tim Pengembang (Kelompok 3)
+## 👥 Bagian A: Identitas Proyek & Tim Pengembang (Kelompok 3)
 | No | Nama Mahasiswa | NIM | Peran / Fokus Jobdesk |
 |:--:|:---|:---:|:---|
 | 1 | **Moh. Arif Prasetyo** | 23215043 | Discovery Venue & Availability Engine |
@@ -22,7 +22,7 @@
 
 ---
 
-## 20.1 Aktivitas 1 – Pemodelan Resource (15 menit)
+## 20.1 Aktivitas 1 – Pemodelan Resource (Bagian B) (15 menit)
 Resource diturunkan secara presisi dari kebutuhan fungsional dan kata benda (*nouns*) pada alur bisnis SportVenue: cari venue/lapangan → cek ketersediaan slot → booking → bayar DP → konfirmasi / batalkan sewa.
 
 Sesuai kaidah arsitektur REST (*Modul Ajar Point 9.3: "Resource Tidak Harus Sama dengan Tabel"*), resource adalah model konseptual yang dilihat dan diakses oleh client melalui URI. Kolom dan relasi di bawah ini telah diselaraskan 100% dengan skema fisik database / ERD:
@@ -73,7 +73,7 @@ Sesuai kaidah arsitektur REST (*Modul Ajar Point 9.3: "Resource Tidak Harus Sama
 
 ---
 
-## 20.2 Aktivitas 2 – Endpoint Matrix (Base URL: `/api/v1`)
+## 20.2 Aktivitas 2 – Endpoint Matrix (Bagian C) (20 menit)
 Disusun 26 endpoint RESTful yang selaras dengan seluruh modul bisnis dan model database SportVenue. Setiap baris memuat HTTP method semantik, URI terstandar, fungsi operasi bisnis, aktor akses, status sukses, dan status gagal relevan:
 
 | No | Method | Endpoint (URI) | Resource Terkait | Fungsi & Deskripsi Operasi Bisnis | Aktor Akses | Status Sukses | Status Gagal Umum |
@@ -112,7 +112,7 @@ Disusun 26 endpoint RESTful yang selaras dengan seluruh modul bisnis dan model d
 
 ---
 
-## 20.3 Aktivitas 3 – Desain Query untuk Endpoint Collection (15 menit)
+## 20.3 Aktivitas 3 – Desain Query untuk Endpoint Collection (Bagian D) (15 menit)
 Dirancang query parameter terstandar pada endpoint bertipe collection untuk menyaring (*filter*), mencari (*search*), mengurutkan (*sort*), dan memaginasi (*pagination*) dengan whitelist yang selaras dengan skema database:
 
 | Endpoint Collection | Filtering (Whitelist) | Searching | Sorting (Default & Whitelist) | Pagination (Default / Maksimum) |
@@ -147,74 +147,122 @@ Hasil evaluasi dan penilaian rancangan API SportVenue mengacu pada 8 butir stand
 
 ---
 
-## 🚦 Kamus & Panduan HTTP Status Code Handling (Point 5 & 16 Modul Ajar)
+## 21. Praktikum Mini: Mengamati Filtering dan Pagination pada API Publik (DummyJSON)
 
-Untuk memastikan konsistensi kontrak API dan pemahaman menyeluruh antara tim backend dan pengembang client (frontend/mobile), setiap kode status HTTP yang dipakai dalam perancangan SportVenue didefinisikan secara baku berdasarkan semantik **RFC 9110** dan praktik terbaik industri:
+Untuk membandingkan rancangan REST API SportVenue dengan standar publik di industri, dilakukan pengujian 6 request ke API publik **DummyJSON** (`https://dummyjson.com/products`) menggunakan Postman / HTTP client:
 
-### A. Tabel Referensi & Pengertian Kode Status HTTP
-| Kode HTTP | Kategori | Arti & Semantik Standar (RFC 9110) | Konteks Penggunaan pada SportVenue | Karakteristik Body Response |
-|:---:|:---:|:---|:---|:---|
-| **`200 OK`** | 2xx Success | Permintaan berhasil diproses dan hasil operasi dikembalikan. | Digunakan pada `GET` data resource (venues, bookings, profile), `PUT`/`PATCH` pembaruan yang mengembalikan data terbaru, dan `POST` pembatalan sewa yang menghitung refund. | Memuat envelope `{ status: "success", data: { ... } }`. |
-| **`201 Created`** | 2xx Success | Permintaan berhasil dan menghasilkan resource baru di server. | Digunakan pada pembuatan akun (`POST /auth/register`), pembuatan booking (`POST /bookings`), penambahan lapangan (`POST /manage/courts`), dan inisialisasi pembayaran Snap (`POST /bookings/{id}/payments`). | Wajib menyertakan data resource baru dan header `Location: /api/v1/{resource}/{id}`. |
-| **`204 No Content`** | 2xx Success | Permintaan berhasil diproses secara tuntas, namun tidak ada konten data yang perlu dikirim kembali. | Digunakan saat penghapusan resource (`DELETE /manage/courts/{id}`, `DELETE /manage/blocks/{id}`) dan saat mencabut token sesi (`POST /auth/logout`). | **Tanpa Body** (panjang payload 0 byte) untuk menghemat bandwidth jaringan. |
-| **`400 Bad Request`** | 4xx Client Error | Sintaks permintaan rusak atau tidak dapat dipahami oleh parser server (*malformed request*). | Terjadi jika payload JSON yang dikirim client rusak sintaksnya (misal kurung kurawal tidak tertutup, koma menggantung, atau tipe data payload bertentangan). | Memuat amplop `{ status: "error", message: "Malformed JSON payload." }`. |
-| **`401 Unauthorized`** | 4xx Client Error | Permintaan membutuhkan autentikasi pengguna, tetapi kredensial tidak ada atau tidak valid. | Terjadi jika client mengakses endpoint terlindungi tanpa header `Authorization: Bearer <token>`, token Sanctum telah kedaluwarsa/dicabut, atau login email/password salah. | Memuat amplop `{ status: "error", message: "Unauthenticated / Invalid credentials." }`. |
-| **`403 Forbidden`** | 4xx Client Error | Identitas pengguna dikenali, tetapi pengguna tidak memiliki hak izin (*otorisasi*) atas resource tersebut. | Terjadi jika penyewa mencoba mengakses endpoint `/manage/*`, pengelola mencoba mengubah venue milik orang lain (*policy ownership violation*), atau signature webhook Midtrans tidak sah. | Memuat amplop `{ status: "error", message: "Akses ditolak. Anda tidak berhak melakukan aksi ini." }`. |
-| **`404 Not Found`** | 4xx Client Error | Resource yang diminta tidak ditemukan pada alamat URI yang diberikan. | Terjadi ketika mencari venue, lapangan, booking, atau harga dengan `{id}` yang tidak terdaftar di database MySQL. | Memuat amplop `{ status: "error", message: "Resource tidak ditemukan." }`. |
-| **`409 Conflict`** | 4xx Client Error | Permintaan valid secara sintaks, namun bertentangan dengan kondisi/state database saat ini. | **Kunci Arsitektur Concurrency (§9.2 PRD):** Dikembalikan ketika slot jam yang diminta sudah terkunci/di-hold oleh penyewa lain, atau saat booking yang sudah selesai/kedaluwarsa dibatalkan kembali. | Memuat amplop `{ status: "error", message: "Slot sudah terisi.", code: "SLOT_ALREADY_LOCKED" }`. |
-| **`422 Unprocessable Content`** | 4xx Client Error | Permintaan terbaca sempurna (*well-formed*), namun isi field melanggar aturan validasi bisnis. | Dikembalikan ketika input form gagal validasi: format tanggal bukan `YYYY-MM-DD`, slot booking kosong, persentase DP di luar 10–100%, atau email sudah terdaftar. | Memuat `{ status: "error", message: "...", errors: { field: ["detail"] } }`. |
-| **`429 Too Many Requests`** | 4xx Client Error | Client telah melampaui kuota frekuensi pengiriman request dalam batas waktu yang ditentukan (*rate limit*). | Menangkal serangan spam booking, login brute-force, atau bot scraping katalog (misal limit > 60 request/menit per IP/token). | Menyertakan header `Retry-After: 60` dan pesan penolakan kuota. |
-| **`500 Internal Server Error`** | 5xx Server Error | Terjadi kegagalan sistem internal pada server yang tidak terduga saat memproses request. | Terjadi ketika koneksi server database MySQL terputus, fatal exception runtime, atau kegagalan internal kode tanpa penanganan khusus. | Memuat pesan umum tanpa mengekspos *stack trace* sensitif demi keamanan sistem. |
-| **`503 Service Unavailable`** | 5xx Server Error | Server sedang tidak dapat melayani permintaan karena ketergantungan pihak ketiga (*upstream*) mengalami gangguan. | Dikembalikan ketika API Payment Gateway Midtrans sedang maintenance/down sehingga inisialisasi token Snap tidak dapat diselesaikan sementara waktu. | Memuat petunjuk bahwa gateway sedang sibuk dan client disarankan mencoba kembali. |
+### A. Tabel Observasi Praktikum Mini
+| No | Request URL DummyJSON | Status Code | Parameter yang Dipakai | Metadata pada Response | Interpretasi / Perbandingan dengan Konvensi Modul |
+|:--:|:---|:---:|:---|:---|:---|
+| 1 | `GET /products?limit=5&skip=0` | `200 OK` | `limit=5`, `skip=0` | `total: 194`, `skip: 0`, `limit: 5` | Mengambil 5 produk pertama (halaman 1). Menggunakan model *offset-based pagination* dengan nama parameter `limit` (setara `per_page`) dan `skip` (setara offset `(page-1)*per_page`). |
+| 2 | `GET /products?limit=5&skip=5&select=title,price` | `200 OK` | `limit=5`, `skip=5`, `select=title,price` | `total: 194`, `skip: 5`, `limit: 5` | Mengambil 5 data halaman ke-2 dengan *sparse fieldsets* (`select=title,price`). Membatasi payload jaringan hanya pada field yang diminta client, sejalan dengan pencegahan *Unrestricted Resource Consumption*. |
+| 3 | `GET /products?sortBy=price&order=desc&limit=5` | `200 OK` | `sortBy=price`, `order=desc`, `limit=5` | `total: 194`, `skip: 0`, `limit: 5` | Mengurutkan harga termahal ke termurah. DummyJSON memisahkan parameter kolom (`sortBy`) dan arah urutan (`order`), sedangkan modul merancang notasi lebih ringkas `sort=-price`. |
+| 4 | `GET /products/search?q=phone` | `200 OK` | `q=phone` | `total: 23`, `skip: 0`, `limit: 23` | Mencari kata kunci "phone". DummyJSON membuat rute khusus `/search`, sedangkan modul menyatukan pencarian di endpoint collection utama `GET /products?q=phone` agar lebih konsisten dan dapat digabung filter lain. |
+| 5 | `GET /products/category/smartphones` | `200 OK` | Path parameter `{name}` | `total: 16`, `skip: 0`, `limit: 16` | Filter kategori smartphone. DummyJSON memakai rute hierarkis, sedangkan modul menggunakan query string `GET /products?category=smartphones` yang memungkinkan filter multi-kategori dan kombinasi kriteria. |
+| 6 | `GET /products/999999` | `404 Not Found` | Path parameter `{id}` | `{"message": "Product with id '999999' not found"}` | Menguji penanganan kasus saat ID produk tidak terdaftar. Server mengembalikan status semantik `404 Not Found` dengan pesan deskriptif, selaras dengan kaidah RFC 9110. |
 
-### B. Analisis & Prinsip Penanganan Status Code Kritis
-1. **Mengapa Menggunakan `409 Conflict` untuk Kasus Double Booking (Bukan 400 atau 422)?**  
-   Request reservasi yang dikirim oleh penyewa sudah memenuhi seluruh kaidah validasi tipe data dan format tanggal (`422` lolos). Format JSON yang dikirimkan pun utuh dan benar (`400` lolos). Namun, pada lapisan transaksi atomik database (InnoDB Unique Constraint `court_id, slot_start`), record slot tersebut sudah dikunci oleh penyewa lain sepersekian detik sebelumnya. Sesuai RFC 9110, `409 Conflict` adalah status yang paling akurat untuk mengabarkan bentrok kondisi konkurensi antar-pengguna.
-2. **Pembedaan Tegas Antara `401 Unauthorized` vs `403 Forbidden`:**  
-   - `401 Unauthorized` menyangkut **Autentikasi (Siapa Anda?)**: Client belum membuktikan identitasnya atau token kedaluwarsa. Client dapat memperbaiki request dengan menyertakan token yang valid.  
-   - `403 Forbidden` menyangkut **Otorisasi (Apa Hak Anda?)**: Identitas pengguna sudah terverifikasi secara sah, namun otorisasi peran (*Role / Policy Gate*) menyatakan pengguna dilarang memanipulasi entitas tersebut. Mengirim ulang kredensial yang sama tidak akan mengubah hasil.
-3. **Mengapa Validasi Form Menghasilkan `422 Unprocessable Content` (Bukan 400)?**  
-   Standar REST modern membedakan kesalahan level transportasi/sintaks (`400 Bad Request` untuk JSON corrupt/malformed) dengan kesalahan level logika domain aplikasi (`422 Unprocessable Content` untuk validasi kolom input). Hal ini memudahkan *frontend library* seperti Formik atau Vue/React Hook Form memetakan *field error* secara otomatis ke elemen antarmuka pengguna.
+### B. Pertanyaan Analisis & Pembahasan
+
+#### 1. Model pagination apa yang digunakan DummyJSON? Petakan limit/skip ke per_page/page!
+- **Model yang digunakan:** DummyJSON menggunakan **Offset/Page-based Pagination** dengan parameter penanda posisi `skip` (offset) dan `limit` (ukuran halaman).
+- **Rumus Pemetaan ke Konvensi Modul (`page` dan `per_page`):**
+  $$\text{limit} = \text{per\_page}$$
+  $$\text{skip} = (\text{page} - 1) \times \text{per\_page}$$
+  $$\text{page} = \left\lfloor \frac{\text{skip}}{\text{limit}} \right\rfloor + 1$$
+
+#### 2. DummyJSON memakai `/products/search?q=` dan `/products/category/{name}`. Bandingkan dengan konvensi `?q=` dan `?category=` pada modul ini. Mana yang lebih konsisten dan mengapa?
+- **Pilihan yang Lebih Konsisten:** Konvensi pada modul ini (`GET /products?q=...&category=...`) **jauh lebih konsisten, terstandar, dan berorientasi REST**.
+- **Alasan Teknis & Arsitektur:**
+  1. **Prinsip Endpoint Tunggal (Single Collection Endpoint):** Modul mempertahankan URI `/products` sebagai representasi tunggal koleksi produk. DummyJSON melanggar prinsip kata benda dengan menyisipkan kata kerja `/search` pada URI path.
+  2. **Dukungan Kombinasi Parameter (Kombinabilitas Tinggi):** Pada rancangan modul, client dapat menyaring kategori sekaligus mencari teks dan menyaring harga dalam satu panggilan: `GET /products?category=smartphones&q=apple&min_price=500`. Pada DummyJSON, `/search` dan `/category` adalah rute terpisah yang saling meniadakan (*mutually exclusive*), sehingga client tidak dapat melakukan pencarian teks di dalam kategori tertentu.
+  3. **Kemudahan Routing Backend:** Satu controller `index(Request $request)` di Laravel dapat menangani seluruh variasi filter secara dinamis tanpa perlu mendaftarkan banyak baris rute terpisah.
+
+#### 3. Metadata apa saja yang tersedia untuk membangun navigasi halaman di client?
+- **Metadata yang Disediakan DummyJSON:**
+  - `total`: Total keseluruhan record yang cocok di database (misal `194`).
+  - `skip`: Posisi baris awal data saat ini (misal `0`, `5`, `10`).
+  - `limit`: Jumlah data maksimum yang dikembalikan per halaman (misal `5`).
+- **Kalkulasi Navigasi di Sisi Client:**
+  - Halaman Saat Ini (*Current Page*): `currentPage = Math.floor(skip / limit) + 1`
+  - Total Halaman (*Last Page*): `totalPages = Math.ceil(total / limit)`
+  - Tombol Next Aktif: `hasNext = (skip + limit) < total`
+  - Tombol Prev Aktif: `hasPrev = skip > 0`
+- **Keunggulan Konvensi Modul (Laravel Resource):** Rancangan SportVenue jauh lebih unggul karena menyajikan objek navigasi instan `links` (`first`, `last`, `prev`, `next`) dan objek `meta` (`current_page`, `last_page`, `from`, `to`, `total`), sehingga tim frontend tidak perlu melakukan perhitungan aritmatika offset secara manual.
 
 ---
 
-## 📦 Representasi Data & Format Response Standar
+## 22. Kelengkapan API Design Document v1 (Milestone M2 – API Blueprint)
 
-### 1. Struktur Response Envelope Standar (Laravel Resource)
+Dokumen ini melengkapi seluruh checklist formal Milestone M2 sesuai arahan rubrik asesmen:
+
+### Bagian E: Desain Representasi Request & Response JSON (Minimal 3 Endpoint)
+
+#### 1. Response Item Tunggal (`GET /api/v1/venues/1`)
 ```json
-// 1. Sukses Item Tunggal (GET /api/v1/venues/1)
+HTTP/1.1 200 OK
+Content-Type: application/json
+
 {
   "status": "success",
   "data": {
     "id": 1,
     "name": "Arena Garuda Futsal",
     "slug": "arena-garuda-futsal",
-    "description": "Gelanggang futsal berstandar nasional",
+    "description": "Gelanggang futsal berstandar nasional lantai vinyl pro.",
     "address": "Jl. Martoloyo No. 12",
     "city": "Tegal",
     "phone": "081234567890",
     "dp_percent": 30,
     "cancel_free_hours": 24,
     "cancel_refund_percent": 50,
-    "image_url": "https://sportvenue.test/storage/venues/garuda.jpg"
+    "image_url": "https://sportvenue.test/storage/venues/garuda.jpg",
+    "created_at": "2026-10-01T08:00:00+07:00"
   }
 }
+```
 
-// 2. Sukses Koleksi dengan Pagination (GET /api/v1/venues?page=1&per_page=2)
+#### 2. Response Item Lapangan Fisik (`GET /api/v1/courts/1`)
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "status": "success",
+  "data": {
+    "id": 1,
+    "venue_id": 1,
+    "name": "Lapangan Futsal A (Vinyl Pro)",
+    "sport_type": "futsal",
+    "is_active": true,
+    "venue": {
+      "id": 1,
+      "name": "Arena Garuda Futsal",
+      "city": "Tegal"
+    },
+    "created_at": "2026-10-01T08:30:00+07:00"
+  }
+}
+```
+
+#### 3. Response Koleksi dengan Pagination Links & Meta (`GET /api/v1/venues?page=1&per_page=2`)
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
 {
   "status": "success",
   "data": [
-    { 
-      "id": 1, 
-      "name": "Arena Garuda Futsal", 
-      "city": "Tegal", 
-      "starting_price": 120000 
+    {
+      "id": 1,
+      "name": "Arena Garuda Futsal",
+      "city": "Tegal",
+      "starting_price": 120000
     },
-    { 
-      "id": 2, 
-      "name": "GOR Satria Badminton", 
-      "city": "Tegal", 
-      "starting_price": 40000 
+    {
+      "id": 2,
+      "name": "GOR Satria Badminton",
+      "city": "Tegal",
+      "starting_price": 40000
     }
   ],
   "links": {
@@ -226,38 +274,116 @@ Untuk memastikan konsistensi kontrak API dan pemahaman menyeluruh antara tim bac
   "meta": {
     "current_page": 1,
     "per_page": 2,
+    "from": 1,
+    "to": 2,
     "total": 10,
     "last_page": 5
   }
 }
+```
 
-// 3. Format Error Terstandar (422 Validasi)
+#### 4. Request & Response Pembuatan Booking (`POST /api/v1/bookings`)
+```json
+// Request Payload Client
+POST /api/v1/bookings
+Authorization: Bearer 1|qX8z9P...
+Content-Type: application/json
+
 {
-  "status": "error",
-  "message": "Data yang dikirim tidak valid.",
-  "errors": {
-    "slots": ["Minimal satu slot jam harus dipilih."]
-  }
+  "court_id": 1,
+  "slots": ["2026-10-25 09:00:00", "2026-10-25 10:00:00"],
+  "notes": "Latihan tanding komunitas futsal"
 }
 
-// 4. Format Error Aturan Bisnis (409 Conflict)
+// Response Sukses
+HTTP/1.1 201 Created
+Location: /api/v1/bookings/45
+Content-Type: application/json
+
 {
-  "status": "error",
-  "message": "Satu atau lebih slot sudah terisi atau sedang di-hold. Silakan pilih slot lain.",
-  "code": "SLOT_ALREADY_LOCKED"
+  "status": "success",
+  "message": "Booking berhasil dibuat. Slot Anda terkunci (HOLD) selama 15 menit.",
+  "data": {
+    "id": 45,
+    "code": "BK-20261021-9988A",
+    "court_id": 1,
+    "total_price": 240000.00,
+    "dp_amount": 72000.00,
+    "status": "PENDING_PAYMENT",
+    "expires_at": "2026-10-21T19:25:00+07:00",
+    "slots": [
+      { "slot_start": "2026-10-25T09:00:00+07:00", "slot_end": "2026-10-25T10:00:00+07:00", "price": 120000.00 },
+      { "slot_start": "2026-10-25T10:00:00+07:00", "slot_end": "2026-10-25T11:00:00+07:00", "price": 120000.00 }
+    ]
+  }
 }
 ```
 
 ---
 
-## 🎯 Keputusan Desain Non-CRUD & Pola Bisnis
+### Bagian F: Error & Status Response Terstandar
+
+Setiap response error menggunakan amplop seragam `{ status: "error", message: "...", errors?: { ... } }`:
+
+```json
+// 1. Error Validasi Input (422 Unprocessable Content)
+HTTP/1.1 422 Unprocessable Content
+Content-Type: application/json
+
+{
+  "status": "error",
+  "message": "Data yang dikirim tidak valid.",
+  "errors": {
+    "slots": ["Minimal satu slot jam operasional harus dipilih."],
+    "court_id": ["Lapangan yang dipilih tidak aktif atau tidak ditemukan."]
+  }
+}
+
+// 2. Error Aturan Bisnis Bentrok Slot (409 Conflict)
+HTTP/1.1 409 Conflict
+Content-Type: application/json
+
+{
+  "status": "error",
+  "message": "Satu atau lebih slot jam yang Anda pilih sudah terisi atau sedang di-hold pengguna lain. Silakan pilih jadwal lain.",
+  "code": "SLOT_ALREADY_LOCKED"
+}
+```
+
+#### Kamus Kode Status HTTP Utama:
+1. `200 OK`: Pengambilan, pembaruan data, atau aksi kalkulasi berhasil.
+2. `201 Created`: Pembuatan resource baru berhasil (disertai header `Location`).
+3. `204 No Content`: Penghapusan resource atau logout berhasil tanpa body.
+4. `400 Bad Request`: Payload JSON rusak atau sintaks tidak valid (*malformed*).
+5. `401 Unauthorized`: Kredensial tidak ada, token expired, atau login salah.
+6. `403 Forbidden`: Pengguna login sah, tetapi role/kebijakan melarang aksi tersebut.
+7. `404 Not Found`: ID resource tidak ditemukan di sistem database.
+8. `409 Conflict`: Bentrok kondisi konkurensi (jadwal slot bertabrakan pada detik bersamaan).
+9. `422 Unprocessable Content`: Sintaks JSON benar, tetapi isi melanggar validasi form.
+10. `429 Too Many Requests`: Melebihi kuota rate limit (> 60 req/menit).
+11. `500 Internal Server Error`: Kesalahan server tak terduga (tanpa ekspos stack trace).
+12. `503 Service Unavailable`: Ketergantungan pihak ketiga (Midtrans) sedang gangguan.
+
+---
+
+### Bagian G: Desain Aksi Non-CRUD & Proses Bisnis
 1. **Pola Pembatalan Booking (`POST /bookings/{id}/cancellation`):**  
    Menggunakan pola *Sub-resource / Process as Resource*. Pembatalan sewa lapangan bukan sekadar `PATCH status = cancelled`, melainkan mengevaluasi audit trail kebijakan venue (perhitungan sisa waktu H-24/H-12, persentase refund DP yang berhak diterima penyewa, dan pelepasan kunci baris slot di `booking_slots`).
-2. **Pola Pembayaran DP (`POST /bookings/{id}/payments`):**  
+2. **Pola Pembayaran DP Midtrans Snap (`POST /bookings/{id}/payments`):**  
    Pembayaran dimodelkan sebagai sub-resource independen dari booking. Setiap upaya pembayaran memiliki riwayat `order_id`, token Midtrans Snap, status settlement, dan metode pembayaran digital terpisah.
-3. **Pemberian Izin & Otorisasi:**  
-   Menggunakan Laravel Sanctum dengan token-based authentication dan Gate/Policy berbasis kepemilikan data (`owner_id` venue harus cocok dengan `auth()->id()`).
-4. **Dukungan PUT vs PATCH:**  
+3. **Pola Callback Webhook Idempotent (`POST /payments/webhook/midtrans`):**  
+   Callback dari payment gateway divalidasi menggunakan signature key SHA-512. Notifikasi berulang untuk order_id yang sama tidak akan mengubah status pesanan dua kali (*idempotent processing*).
+
+---
+
+### Bagian H: Catatan Keputusan Desain Arsitektur
+1. **Dukungan PUT vs PATCH:**  
    Keduanya didukung pada endpoint `/manage/courts/{id}` dan `/manage/venues/{id}`. PUT menggantikan seluruh representasi data lapangan/venue, sedangkan PATCH dipergunakan untuk pembaruan atribut tunggal secara atomik (misalnya mengubah status `is_active`).
-5. **Strategi Versioning:**  
+2. **Strategi Versioning:**  
    Menggunakan path-based versioning (`/api/v1`) yang transparan, mudah diuji via Postman, dan aman untuk evolusi jangka panjang tanpa merusak client aplikasi mobile maupun web yang sudah berjalan.
+3. **Struktur Envelope Data, Meta, dan Links:**  
+   Mengadopsi format envelope bawaan Laravel Eloquent API Resource yang memisahkan payload utama (`data`) dari metadata paginasi (`meta`) dan navigasi tautan (`links`).
+4. **Batas Limit Pagination (Proteksi OWASP API4):**  
+   Setiap endpoint bertipe collection menerapkan nilai default `per_page` antara 10–20 dengan batas maksimum keras (*hard cap*) 50–100 untuk melindungi server dari serangan *Unrestricted Resource Consumption*.
+5. **Arsitektur Concurrency Anti Double Booking (§9.2 PRD):**  
+   Pencegahan pemesanan ganda dijamin pada lapisan terdalam database melalui MySQL InnoDB Unique Constraint `unique(court_id, slot_start)`. Jika dua transaksi paralel mencoba memesan slot yang sama, transaksi kedua otomatis ditolak oleh database dan sistem merespons dengan HTTP status `409 Conflict`.

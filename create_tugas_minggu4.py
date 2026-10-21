@@ -54,7 +54,7 @@ class NumberedCanvas(canvas.Canvas):
         
         self.setFont("Helvetica", 8)
         self.setFillColor(colors.HexColor("#64748B"))
-        self.drawString(36, 28, "SportVenue Kelompok 3 — Dokumen Desain REST API, Koreksi ERD & Panduan Status Code")
+        self.drawString(36, 28, "SportVenue Kelompok 3 — REST API Design Document v1 (Point 20.1 s.d. 22)")
         page_str = f"Halaman {self._pageNumber} dari {page_count}"
         self.drawRightString(559, 28, page_str)
         self.restoreState()
@@ -82,8 +82,8 @@ def build_pdf(filename):
         'DocTitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=13,
-        leading=16.5,
+        fontSize=12.5,
+        leading=16,
         textColor=NAVY,
         spaceAfter=3
     )
@@ -95,14 +95,14 @@ def build_pdf(filename):
         fontSize=8.5,
         leading=12,
         textColor=colors.HexColor("#475569"),
-        spaceAfter=6
+        spaceAfter=5
     )
 
     h1_style = ParagraphStyle(
         'Heading1_Custom',
         parent=styles['Heading1'],
         fontName='Helvetica-Bold',
-        fontSize=10,
+        fontSize=9.8,
         leading=13,
         textColor=NAVY,
         spaceBefore=4,
@@ -113,8 +113,8 @@ def build_pdf(filename):
         'Body_Custom',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=7.5,
-        leading=10.5,
+        fontSize=7.2,
+        leading=10.2,
         textColor=TEXT_COLOR,
         spaceAfter=3
     )
@@ -123,8 +123,8 @@ def build_pdf(filename):
         'TH',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=7,
-        leading=8.8,
+        fontSize=6.8,
+        leading=8.5,
         textColor=colors.white,
         alignment=1
     )
@@ -133,8 +133,8 @@ def build_pdf(filename):
         'TD',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=6.8,
-        leading=8.8,
+        fontSize=6.6,
+        leading=8.6,
         textColor=TEXT_COLOR
     )
 
@@ -154,15 +154,15 @@ def build_pdf(filename):
         'CodeStyle',
         parent=styles['Normal'],
         fontName='Courier',
-        fontSize=6.5,
-        leading=8.2,
+        fontSize=6.2,
+        leading=7.8,
         textColor=colors.HexColor("#0F172A")
     )
 
     story = []
 
     # ==========================================
-    # HALAMAN 1: IDENTITAS & 20.1 AKTIVITAS 1
+    # HALAMAN 1: IDENTITAS (BAGIAN A) & 20.1 AKTIVITAS 1 (BAGIAN B)
     # ==========================================
     story.append(Paragraph("LAPORAN WORKSHOP & DOKUMEN RANCANGAN REST API (v1)", title_style))
     story.append(Paragraph("<b>Mata Kuliah:</b> Pemrograman Web Service (Minggu ke-4) &nbsp;|&nbsp; <b>Dosen Pengampu:</b> Zaenul Arif, S.Kom., M.Kom.<br/>"
@@ -202,10 +202,10 @@ def build_pdf(filename):
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_meta)
-    story.append(Spacer(1, 5))
+    story.append(Spacer(1, 4))
 
     # 20.1 Aktivitas 1
-    story.append(Paragraph("20.1 Aktivitas 1 – Pemodelan Resource (Tersinkronisasi Penuh dengan ERD)", h1_style))
+    story.append(Paragraph("20.1 Aktivitas 1 – Pemodelan Resource (Bagian B) (Tersinkronisasi Penuh dengan ERD)", h1_style))
     story.append(Paragraph("Resource diturunkan secara presisi dari entitas bisnis SportVenue (Modul Ajar Point 9.3: <i>Resource tidak harus sama dengan tabel</i>). Kolom fisik database dan atribut virtual turunan telah diselaraskan 100% dengan ERD aplikasi:", body_style))
 
     res_headers = [
@@ -295,9 +295,9 @@ def build_pdf(filename):
     story.append(PageBreak())
 
     # ==========================================
-    # HALAMAN 2: 20.2 AKTIVITAS 2 (ENDPOINT MATRIX)
+    # HALAMAN 2: 20.2 AKTIVITAS 2 (BAGIAN C) - ENDPOINT MATRIX
     # ==========================================
-    story.append(Paragraph("20.2 Aktivitas 2 – Endpoint Matrix (20 menit)", h1_style))
+    story.append(Paragraph("20.2 Aktivitas 2 – Endpoint Matrix (Bagian C) (20 menit)", h1_style))
     story.append(Paragraph("Disusun 26 endpoint RESTful yang selaras 100% dengan resource dan model database SportVenue. Setiap baris memuat HTTP method semantik, path URI terstandar, fungsi operasi bisnis, aktor pengguna, serta status sukses dan status gagal yang relevan:", body_style))
 
     ep_headers = [
@@ -376,9 +376,9 @@ def build_pdf(filename):
     story.append(PageBreak())
 
     # ==========================================
-    # HALAMAN 3: 20.3 AKTIVITAS 3 & 20.4 AKTIVITAS 4
+    # HALAMAN 3: 20.3 AKTIVITAS 3 (BAGIAN D) & 20.4 AKTIVITAS 4 (PEER REVIEW)
     # ==========================================
-    story.append(Paragraph("20.3 Aktivitas 3 – Desain Query untuk Endpoint Collection (15 menit)", h1_style))
+    story.append(Paragraph("20.3 Aktivitas 3 – Desain Query untuk Endpoint Collection (Bagian D) (15 menit)", h1_style))
     story.append(Paragraph("Ditetapkan query parameter standar pada 3 endpoint collection utama untuk menyaring (<i>filter</i>), mencari (<i>search</i>), mengurutkan (<i>sort</i>), dan memaginasi (<i>pagination</i>) dengan whitelist yang selaras dengan skema database:", body_style))
 
     q_headers = [
@@ -426,7 +426,7 @@ def build_pdf(filename):
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
     ]))
     story.append(t_q)
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 5))
 
     # 20.4 Aktivitas 4
     story.append(Paragraph("20.4 Aktivitas 4 – Peer Review & Quality Checklist (10 menit)", h1_style))
@@ -456,14 +456,14 @@ def build_pdf(filename):
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
         ('INNERGRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 2.2),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2.2),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
         ('LEFTPADDING', (0,0), (-1,-1), 4),
         ('RIGHTPADDING', (0,0), (-1,-1), 4),
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
     ]))
     story.append(t_chk)
-    story.append(Spacer(1, 5))
+    story.append(Spacer(1, 4))
 
     action_text = """<b>Tindak Lanjut Perbaikan Pasca Review & Masukan Penyelarasan ERD:</b><br/>
 1. <b>Penyelarasan Kolom play_date:</b> Dihapus dari whitelist sort tabel bookings dan dicatat secara transparan sebagai nilai relasional dari <code>booking_slots.slot_start</code>.<br/>
@@ -475,8 +475,8 @@ def build_pdf(filename):
     t_action.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#EFF6FF")),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#93C5FD")),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
@@ -485,10 +485,71 @@ def build_pdf(filename):
     story.append(PageBreak())
 
     # ==========================================
-    # HALAMAN 4: KAMUS & PANDUAN STATUS CODE HANDLING
+    # HALAMAN 4: 21. PRAKTIKUM MINI (DUMMYJSON)
     # ==========================================
-    story.append(Paragraph("Kamus & Panduan Lengkap HTTP Status Code Handling (RFC 9110)", h1_style))
-    story.append(Paragraph("Setiap kode status HTTP yang dipakai dalam perancangan REST API SportVenue memiliki semantik baku, kondisi penggunaan spesifik, dan format body response terstandar:", body_style))
+    story.append(Paragraph("21. Praktikum Mini: Mengamati Filtering dan Pagination pada API Publik (DummyJSON)", h1_style))
+    story.append(Paragraph("Hasil pengujian 6 request ke API publik DummyJSON (<code>https://dummyjson.com/products</code>) dan perbandingannya dengan konvensi desain RESTful API SportVenue:", body_style))
+
+    dj_headers = [
+        Paragraph("No", table_header),
+        Paragraph("Request URL DummyJSON", table_header),
+        Paragraph("Status", table_header),
+        Paragraph("Parameter", table_header),
+        Paragraph("Metadata Response", table_header),
+        Paragraph("Interpretasi / Komparasi dengan Konvensi Modul", table_header)
+    ]
+    dj_rows = [
+        dj_headers,
+        [Paragraph("1", table_cell_center), Paragraph("<code>GET /products?limit=5&skip=0</code>", table_cell), Paragraph("<b>200 OK</b>", table_cell_center), Paragraph("limit=5, skip=0", table_cell), Paragraph("total: 194, skip: 0, limit: 5", table_cell), Paragraph("Offset-based: <code>limit</code> setara <code>per_page</code>, <code>skip</code> setara offset. Mengambil 5 data halaman 1.", table_cell)],
+        [Paragraph("2", table_cell_center), Paragraph("<code>GET /products?limit=5&skip=5&select=title,price</code>", table_cell), Paragraph("<b>200 OK</b>", table_cell_center), Paragraph("limit, skip, select", table_cell), Paragraph("total: 194, skip: 5, limit: 5", table_cell), Paragraph("Halaman ke-2 dengan <i>sparse fieldsets</i> (hanya ambil title & price), menghemat beban jaringan.", table_cell)],
+        [Paragraph("3", table_cell_center), Paragraph("<code>GET /products?sortBy=price&order=desc&limit=5</code>", table_cell), Paragraph("<b>200 OK</b>", table_cell_center), Paragraph("sortBy, order, limit", table_cell), Paragraph("total: 194, skip: 0, limit: 5", table_cell), Paragraph("Sort harga termahal. DummyJSON memisahkan field dan arah; modul merancang lebih ringkas: <code>sort=-price</code>.", table_cell)],
+        [Paragraph("4", table_cell_center), Paragraph("<code>GET /products/search?q=phone</code>", table_cell), Paragraph("<b>200 OK</b>", table_cell_center), Paragraph("q=phone", table_cell), Paragraph("total: 23, skip: 0, limit: 23", table_cell), Paragraph("Pencarian kata kunci. DummyJSON membuat rute khusus <code>/search</code>, modul menyatukan di koleksi utama: <code>?q=phone</code>.", table_cell)],
+        [Paragraph("5", table_cell_center), Paragraph("<code>GET /products/category/smartphones</code>", table_cell), Paragraph("<b>200 OK</b>", table_cell_center), Paragraph("path {category}", table_cell), Paragraph("total: 16, skip: 0, limit: 16", table_cell), Paragraph("Filter hierarkis path. Modul memakai query string <code>?category=smartphones</code> agar bisa dikombinasi filter lain.", table_cell)],
+        [Paragraph("6", table_cell_center), Paragraph("<code>GET /products/999999</code>", table_cell), Paragraph("<b>404 Not Found</b>", table_cell_center), Paragraph("path {id}", table_cell), Paragraph("message: Product not found", table_cell), Paragraph("ID produk tidak ada di sistem. Server merespons semantik 404 dengan pesan deskriptif sesuai RFC 9110.", table_cell)],
+    ]
+    t_dj = Table(dj_rows, colWidths=[16, 120, 52, 60, 110, 165])
+    t_dj.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), BG_HEADER),
+        ('ALIGN', (0,0), (-1,0), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('RIGHTPADDING', (0,0), (-1,-1), 3),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
+    ]))
+    story.append(t_dj)
+    story.append(Spacer(1, 4))
+
+    dj_qa = """<b>Jawaban Pertanyaan Analisis Praktikum Mini:</b><br/>
+1. <b>Model Pagination & Pemetaan Rumus:</b><br/>
+   DummyJSON memakai <i>Offset-based pagination</i> dengan parameter <code>limit</code> dan <code>skip</code>. Rumus konversi ke <code>per_page</code> dan <code>page</code>:<br/>
+   &nbsp;&nbsp;• <code>limit = per_page</code> &nbsp;|&nbsp; <code>skip = (page - 1) * per_page</code> &nbsp;|&nbsp; <code>page = floor(skip / limit) + 1</code>.<br/>
+2. <b>Perbandingan Rute Terpisah vs Query Parameter Tunggal:</b><br/>
+   Konvensi pada modul (<code>GET /products?q=...&category=...</code>) <b>jauh lebih konsisten dan RESTful</b> dibanding DummyJSON (<code>/search?q=</code> dan <code>/category/{name}</code>) karena: (a) Mematuhi prinsip satu endpoint koleksi tunggal berbasis kata benda; (b) Mendukung kombinasi parameter secara bebas (misal filter kategori sekaligus cari nama dan batas harga); (c) Mencegah pemborosan rute di file routing backend.<br/>
+3. <b>Metadata Navigasi di Client:</b><br/>
+   DummyJSON menyediakan metadata skalar tingkat atas: <code>total</code>, <code>skip</code>, dan <code>limit</code>. Client menghitung: <code>totalPages = Math.ceil(total / limit)</code> dan <code>currentPage = Math.floor(skip / limit) + 1</code>. Konvensi modul (Laravel Resource) jauh lebih ramah developer karena sudah otomatis menyediakan objek <code>meta</code> (halaman aktif, total baris, last page) serta objek tautan <code>links</code> (first, last, prev, next)."""
+    
+    t_dj_qa = Table([[Paragraph(dj_qa, body_style)]], colWidths=[523])
+    t_dj_qa.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F8FAFC")),
+        ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
+    ]))
+    story.append(t_dj_qa)
+
+    story.append(PageBreak())
+
+    # ==========================================
+    # HALAMAN 5: 22. KELENGKAPAN M2 - BAGIAN F (STATUS CODE HANDLING)
+    # ==========================================
+    story.append(Paragraph("22. Kelengkapan M2 — Bagian F: Kamus & Panduan HTTP Status Code Handling", h1_style))
+    story.append(Paragraph("Setiap kode status HTTP yang dipakai dalam perancangan REST API SportVenue memiliki semantik baku, kondisi penggunaan spesifik, dan format body response terstandar (RFC 9110):", body_style))
 
     sc_headers = [
         Paragraph("Kode HTTP", table_header),
@@ -526,7 +587,7 @@ def build_pdf(filename):
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, BG_LIGHT])
     ]))
     story.append(t_sc)
-    story.append(Spacer(1, 5))
+    story.append(Spacer(1, 4))
 
     sc_analysis = """<b>Prinsip & Analisis Penanganan Status Code Kritis:</b><br/>
 1. <b>Mengapa Double Booking menggunakan <code>409 Conflict</code> (bukan 400 atau 422)?</b><br/>
@@ -543,19 +604,19 @@ def build_pdf(filename):
     t_sc_analysis.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F0FDF4")),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#86EFAC")),
-        ('TOPPADDING', (0,0), (-1,-1), 3.5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3.5),
-        ('LEFTPADDING', (0,0), (-1,-1), 6),
-        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_sc_analysis)
 
     story.append(PageBreak())
 
     # ==========================================
-    # HALAMAN 5: REPRESENTASI, ERROR, NON-CRUD & KEPUTUSAN
+    # HALAMAN 6: 22. KELENGKAPAN M2 - BAGIAN E, G, DAN H
     # ==========================================
-    story.append(Paragraph("Representasi Response JSON & Format Error Terstandar", h1_style))
+    story.append(Paragraph("22. Kelengkapan M2 — Bagian E: Representasi Request & Response JSON", h1_style))
     story.append(Paragraph("Format representasi data keluaran Laravel API Resource seragam untuk seluruh endpoint (envelope data, meta, dan links):", body_style))
 
     json_envelope_item = """// 1. Response Item Tunggal (GET /api/v1/venues/1)
@@ -565,14 +626,14 @@ def build_pdf(filename):
     "id": 1,
     "name": "Arena Garuda Futsal",
     "slug": "arena-garuda-futsal",
-    "description": "Gelanggang futsal berstandar nasional",
+    "description": "Gelanggang futsal lantai vinyl pro",
     "address": "Jl. Martoloyo No. 12",
     "city": "Tegal",
     "phone": "081234567890",
     "dp_percent": 30,
     "cancel_free_hours": 24,
     "cancel_refund_percent": 50,
-    "image_url": "https://sportvenue.test/storage/venues/garuda.jpg"
+    "image_url": "https://sportvenue.test/storage/venues/1.jpg"
   }
 }
 
@@ -580,46 +641,29 @@ def build_pdf(filename):
 {
   "status": "error",
   "message": "Data yang dikirim tidak valid.",
-  "errors": {
-    "slots": ["Minimal satu slot jam harus dipilih."]
-  }
+  "errors": { "slots": ["Minimal satu slot jam harus dipilih."] }
 }"""
 
-    json_envelope_col = """// 3. Response Koleksi dengan Pagination (GET /venues)
+    json_envelope_col = """// 3. Response Koleksi Pagination (GET /venues)
 {
   "status": "success",
   "data": [
-    { 
-      "id": 1, 
-      "name": "Arena Garuda Futsal", 
-      "city": "Tegal", 
-      "starting_price": 120000 
-    },
-    { 
-      "id": 2, 
-      "name": "GOR Satria Badminton", 
-      "city": "Tegal", 
-      "starting_price": 40000 
-    }
+    { "id": 1, "name": "Arena Garuda Futsal", "city": "Tegal", "starting_price": 120000 },
+    { "id": 2, "name": "GOR Satria Badminton", "city": "Tegal", "starting_price": 40000 }
   ],
   "links": {
     "first": "http://localhost:8000/api/v1/venues?page=1",
-    "last": "http://localhost:8000/api/v1/venues?page=3",
+    "last": "http://localhost:8000/api/v1/venues?page=5",
     "prev": null,
     "next": "http://localhost:8000/api/v1/venues?page=2"
   },
-  "meta": {
-    "current_page": 1,
-    "per_page": 2,
-    "total": 6,
-    "last_page": 3
-  }
+  "meta": { "current_page": 1, "per_page": 2, "total": 10, "last_page": 5 }
 }
 
-// 4. Response Aturan Bisnis Bentrok Slot (409 Conflict)
+// 4. Response Bentrok Slot Concurrency (409 Conflict)
 {
   "status": "error",
-  "message": "Satu atau lebih slot sudah terisi atau sedang di-hold. Silakan pilih slot lain.",
+  "message": "Satu atau lebih slot sudah terisi. Pilih slot lain.",
   "code": "SLOT_ALREADY_LOCKED"
 }"""
 
@@ -633,44 +677,45 @@ def build_pdf(filename):
         ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
         ('INNERGRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-        ('LEFTPADDING', (0,0), (-1,-1), 5),
-        ('RIGHTPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 4),
+        ('RIGHTPADDING', (0,0), (-1,-1), 4),
     ]))
     story.append(t_code)
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 5))
 
-    story.append(Paragraph("Pola Aksi Non-CRUD & Catatan Keputusan Desain Arsitektur", h1_style))
+    story.append(Paragraph("Bagian G & H: Pola Aksi Non-CRUD & Catatan Keputusan Desain Arsitektur", h1_style))
     
     decisions_text = """• <b>Aksi Non-CRUD Pembatalan Booking (<code>POST /bookings/{id}/cancellation</code>):</b> Dimodelkan menggunakan pola <i>Sub-resource / Process as Resource</i>. Pembatalan sewa lapangan bukan sekadar <code>PATCH status = cancelled</code>, melainkan memerlukan evaluasi audit trail kebijakan pembatalan venue (perhitungan tenggat waktu H-24/H-12, persentase refund DP, pelepasan kunci baris slot operasional di database, dan notifikasi refund ke penyewa).<br/>
 • <b>Aksi Non-CRUD Pembayaran DP (<code>POST /bookings/{id}/payments</code>):</b> Dipisahkan menjadi sub-resource pembayaran karena memiliki entitas data mandiri (order_id Midtrans, status token Snap, redirect URL, dan verifikasi callback webhook idempotent).<br/>
 • <b>Dukungan PUT vs PATCH:</b> Keduanya didukung pada endpoint <code>/manage/courts/{id}</code> dan <code>/manage/venues/{id}</code>. PUT menggantikan seluruh representasi data lapangan, sedangkan PATCH dipergunakan untuk pembaruan atribut tunggal secara atomik (misalnya mengubah status aktif/non-aktif lapangan <code>is_active</code>).<br/>
 • <b>Strategi Versioning:</b> Menggunakan path-based versioning (<code>/api/v1</code>) yang mudah dipahami, mudah diuji via Postman, dan secara transparan memisahkan kontrak versi lama jika di kemudian hari dilakukan breaking change.<br/>
-• <b>Struktur Envelope Data & Pagination:</b> Menggunakan format <code>{ status, data, links, meta }</code> yang selaras dengan keluaran standar Laravel Eloquent API Resource, mempermudah tim frontend/mobile dalam rendering navigasi halaman."""
+• <b>Struktur Envelope Data & Pagination:</b> Menggunakan format <code>{ status, data, links, meta }</code> yang selaras dengan keluaran standar Laravel Eloquent API Resource, mempermudah tim frontend/mobile dalam rendering navigasi halaman.<br/>
+• <b>Arsitektur Concurrency Anti Double Booking (§9.2 PRD):</b> Menggunakan 4 lapis perlindungan (Client UX, Cache Lock, DB Transaction, dan InnoDB Unique Constraint <code>court_id, slot_start</code>) yang menjamin integritas data dan mengembalikan 409 Conflict saat terjadi perebutan slot."""
     
     t_dec = Table([[Paragraph(decisions_text, body_style)]], colWidths=[523])
     t_dec.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), BG_LIGHT),
         ('BOX', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-        ('LEFTPADDING', (0,0), (-1,-1), 6),
-        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
     ]))
     story.append(t_dec)
 
     doc.build(story, canvasmaker=NumberedCanvas)
-    print(f"Successfully generated 5-page PDF: {filename}")
+    print(f"Successfully generated 6-page PDF: {filename}")
 
 def build_docx(filename):
     doc = docx.Document()
     
     for section in doc.sections:
-        section.top_margin = Inches(0.6)
-        section.bottom_margin = Inches(0.6)
-        section.left_margin = Inches(0.6)
-        section.right_margin = Inches(0.6)
+        section.top_margin = Inches(0.55)
+        section.bottom_margin = Inches(0.55)
+        section.left_margin = Inches(0.55)
+        section.right_margin = Inches(0.55)
 
     def set_cell_background(cell, fill_hex):
         tcPr = cell._tc.get_or_add_tcPr()
@@ -681,13 +726,13 @@ def build_docx(filename):
     p_title = doc.add_paragraph()
     r_title = p_title.add_run("LAPORAN WORKSHOP & DOKUMEN RANCANGAN REST API (v1)")
     r_title.bold = True
-    r_title.font.size = Pt(14)
+    r_title.font.size = Pt(13.5)
     r_title.font.color.rgb = RGBColor(30, 58, 138)
     p_title.paragraph_format.space_after = Pt(2)
 
     p_sub = doc.add_paragraph()
-    p_sub.add_run("Mata Kuliah: Pemrograman Web Service (Minggu ke-4) | Dosen: Zaenul Arif, S.Kom., M.Kom.\nProyek: SportVenue — Platform Web Service Booking Lapangan Olahraga Online (Milestone M2)").font.size = Pt(9)
-    p_sub.paragraph_format.space_after = Pt(8)
+    p_sub.add_run("Mata Kuliah: Pemrograman Web Service (Minggu ke-4) | Dosen: Zaenul Arif, S.Kom., M.Kom.\nProyek: SportVenue — Platform Web Service Booking Lapangan Olahraga Online (Milestone M2)").font.size = Pt(8.5)
+    p_sub.paragraph_format.space_after = Pt(6)
 
     # Identitas Tim
     table_id = doc.add_table(rows=2, cols=4)
@@ -709,15 +754,15 @@ def build_docx(filename):
             p.paragraph_format.space_before = Pt(1)
             run = p.add_run(text)
             run.bold = is_bold
-            run.font.size = Pt(8)
+            run.font.size = Pt(7.5)
 
     doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
     # 20.1 Aktivitas 1
     h1 = doc.add_paragraph()
-    r = h1.add_run("20.1 Aktivitas 1 – Pemodelan Resource (Koreksi & Sinkronisasi ERD)")
+    r = h1.add_run("20.1 Aktivitas 1 – Pemodelan Resource (Bagian B) (Koreksi & Sinkronisasi ERD)")
     r.bold = True
-    r.font.size = Pt(11)
+    r.font.size = Pt(10.5)
     r.font.color.rgb = RGBColor(30, 58, 138)
     
     t_res = doc.add_table(rows=12, cols=6)
@@ -749,7 +794,7 @@ def build_docx(filename):
             p.paragraph_format.space_after = Pt(1)
             p.paragraph_format.space_before = Pt(1)
             run = p.add_run(val)
-            run.font.size = Pt(7)
+            run.font.size = Pt(6.8)
             if r_idx == 0:
                 run.bold = True
                 run.font.color.rgb = RGBColor(255, 255, 255)
@@ -758,9 +803,9 @@ def build_docx(filename):
 
     # 20.2 Aktivitas 2
     h2 = doc.add_paragraph()
-    r = h2.add_run("20.2 Aktivitas 2 – Endpoint Matrix (20 menit)")
+    r = h2.add_run("20.2 Aktivitas 2 – Endpoint Matrix (Bagian C) (20 menit)")
     r.bold = True
-    r.font.size = Pt(11)
+    r.font.size = Pt(10.5)
     r.font.color.rgb = RGBColor(30, 58, 138)
 
     ep_matrix_data = [
@@ -812,18 +857,18 @@ def build_docx(filename):
             p.paragraph_format.space_after = Pt(1)
             p.paragraph_format.space_before = Pt(1)
             run = p.add_run(val)
-            run.font.size = Pt(6.8)
+            run.font.size = Pt(6.6)
             if r_idx == 0:
                 run.bold = True
                 run.font.color.rgb = RGBColor(255, 255, 255)
 
     doc.add_page_break()
 
-    # 20.3 Aktivitas 3
+    # 20.3 Aktivitas 3 & 20.4
     h3 = doc.add_paragraph()
-    r = h3.add_run("20.3 Aktivitas 3 – Desain Query untuk Endpoint Collection (15 menit)")
+    r = h3.add_run("20.3 Aktivitas 3 (Bagian D) & 20.4 Aktivitas 4 (Peer Review)")
     r.bold = True
-    r.font.size = Pt(11)
+    r.font.size = Pt(10.5)
     r.font.color.rgb = RGBColor(30, 58, 138)
 
     q_data = [
@@ -847,7 +892,7 @@ def build_docx(filename):
             p.paragraph_format.space_after = Pt(1)
             p.paragraph_format.space_before = Pt(1)
             run = p.add_run(val)
-            run.font.size = Pt(7.5)
+            run.font.size = Pt(7)
             if r_idx == 0:
                 run.bold = True
                 run.font.color.rgb = RGBColor(255, 255, 255)
@@ -855,21 +900,15 @@ def build_docx(filename):
     doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
     # 20.4 Aktivitas 4
-    h4 = doc.add_paragraph()
-    r = h4.add_run("20.4 Aktivitas 4 – Peer Review & Quality Checklist (10 menit)")
-    r.bold = True
-    r.font.size = Pt(11)
-    r.font.color.rgb = RGBColor(30, 58, 138)
-
     chk_data = [
         ["No", "Butir Pemeriksaan Kualitas Desain REST API", "Status", "Catatan Evaluasi Kelompok & Hasil Penilaian"],
-        ["1", "Semua URI memakai kata benda jamak, huruf kecil, dan tanpa kata kerja", "[ X ] Ya", "Seluruh endpoint memakai kata benda jamak (/venues, /courts, /prices, /blocks, /bookings, /payments). Tidak ada kata kerja seperti /getVenues atau /createBooking."],
+        ["1", "Semua URI memakai kata benda jamak, huruf kecil, dan tanpa kata kerja", "[ X ] Ya", "Seluruh endpoint memakai kata benda jamak (/venues, /courts, /prices, /blocks, /bookings, /payments). Tidak ada kata kerja seperti /getVenues."],
         ["2", "Prefix /api/v1 dipakai konsisten", "[ X ] Ya", "Seluruh URI dimulai dengan prefix /api/v1, menjamin evolusi API tanpa memutus (breaking) integrasi client lama."],
         ["3", "Method sesuai operasi; GET tidak mengubah data", "[ X ] Ya", "Operasi GET bersifat safe & idempotent (hanya membaca data). Seluruh mutasi data wajib memakai POST, PUT/PATCH, atau DELETE."],
         ["4", "POST → 201, DELETE → 204, dan status gagal relevan dicantumkan", "[ X ] Ya", "Create menghasilkan 201 Created; Delete menghasilkan 204 No Content. Status gagal (400, 401, 403, 404, 409, 422) didefinisikan eksplisit."],
         ["5", "Nesting maksimal 2 tingkat", "[ X ] Ya", "Nesting dibatasi: /venues/{id}/courts. Setelah item memiliki ID unik global, akses dilakukan secara flat: /courts/{id}, /bookings/{id}."],
         ["6", "Setiap collection memiliki pagination dengan batas maksimum", "[ X ] Ya", "Setiap collection dibatasi default 10–20 dan hard-cap max 50–100 untuk menangkal celah OWASP Unrestricted Resource Consumption."],
-        ["7", "Filter/sort memakai query parameter dengan whitelist", "[ X ] Ya", "Filter dan sort dioperasikan di query string dengan whitelist ketat yang selaras kolom fisik ERD untuk mencegah SQL error atau pembocoran kolom sensitif."],
+        ["7", "Filter/sort memakai query parameter dengan whitelist", "[ X ] Ya", "Filter dan sort dioperasikan di query string dengan whitelist ketat yang selaras kolom fisik ERD untuk mencegah SQL error."],
         ["8", "Format error seragam", "[ X ] Ya", "Seluruh skenario kegagalan memakai amplop format seragam: { status: 'error', message: '...', errors: { ... } }."],
     ]
     t_chk = doc.add_table(rows=len(chk_data), cols=4)
@@ -887,18 +926,56 @@ def build_docx(filename):
             p.paragraph_format.space_after = Pt(1)
             p.paragraph_format.space_before = Pt(1)
             run = p.add_run(val)
-            run.font.size = Pt(7.5)
+            run.font.size = Pt(7)
             if r_idx == 0:
                 run.bold = True
                 run.font.color.rgb = RGBColor(255, 255, 255)
 
     doc.add_page_break()
 
-    # Halaman 4 Docx: STATUS CODE HANDLING
-    h_sc = doc.add_paragraph()
-    r = h_sc.add_run("Kamus & Panduan Lengkap HTTP Status Code Handling (RFC 9110)")
+    # Halaman 4 Docx: 21. PRAKTIKUM MINI DUMMYJSON
+    h_dj = doc.add_paragraph()
+    r = h_dj.add_run("21. Praktikum Mini: Mengamati Filtering & Pagination pada API Publik (DummyJSON)")
     r.bold = True
-    r.font.size = Pt(11)
+    r.font.size = Pt(10.5)
+    r.font.color.rgb = RGBColor(30, 58, 138)
+
+    dj_data = [
+        ["No", "Request URL DummyJSON", "Status", "Parameter", "Metadata Response", "Interpretasi / Komparasi Konvensi Modul"],
+        ["1", "GET /products?limit=5&skip=0", "200 OK", "limit=5, skip=0", "total: 194, skip: 0, limit: 5", "Offset-based: limit = per_page, skip = offset. Mengambil 5 data hal. 1."],
+        ["2", "GET /products?limit=5&skip=5&select=title,price", "200 OK", "limit, skip, select", "total: 194, skip: 5, limit: 5", "Sparse fieldsets (select): hanya muat atribut yang diminta, hemat bandwidth."],
+        ["3", "GET /products?sortBy=price&order=desc&limit=5", "200 OK", "sortBy, order, limit", "total: 194, skip: 0, limit: 5", "Sort descending. DummyJSON pisahkan field & arah; modul gunakan: sort=-price."],
+        ["4", "GET /products/search?q=phone", "200 OK", "q=phone", "total: 23, skip: 0, limit: 23", "Search keyword. DummyJSON buat rute /search; modul gabung di koleksi: ?q=phone."],
+        ["5", "GET /products/category/smartphones", "200 OK", "path {cat}", "total: 16, skip: 0, limit: 16", "Filter kategori di path. Modul gunakan query ?category= agar fleksibel dikombinasi."],
+        ["6", "GET /products/999999", "404 Not Found", "path {id}", "Product not found", "ID tidak terdaftar. Server kembalikan semantik 404 sesuai standar RFC 9110."]
+    ]
+    t_dj_docx = doc.add_table(rows=len(dj_data), cols=6)
+    t_dj_docx.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for r_idx, row in enumerate(dj_data):
+        for c_idx, val in enumerate(row):
+            cell = t_dj_docx.cell(r_idx, c_idx)
+            if r_idx == 0:
+                set_cell_background(cell, "1E3A8A")
+            elif r_idx % 2 == 1:
+                set_cell_background(cell, "FFFFFF")
+            else:
+                set_cell_background(cell, "F8FAFC")
+            p = cell.paragraphs[0]
+            p.paragraph_format.space_after = Pt(1)
+            p.paragraph_format.space_before = Pt(1)
+            run = p.add_run(val)
+            run.font.size = Pt(6.8)
+            if r_idx == 0:
+                run.bold = True
+                run.font.color.rgb = RGBColor(255, 255, 255)
+
+    doc.add_page_break()
+
+    # Halaman 5 Docx: STATUS CODE HANDLING
+    h_sc = doc.add_paragraph()
+    r = h_sc.add_run("22. Kelengkapan M2 — Bagian F: Kamus & Panduan HTTP Status Code Handling (RFC 9110)")
+    r.bold = True
+    r.font.size = Pt(10.5)
     r.font.color.rgb = RGBColor(30, 58, 138)
 
     sc_table_data = [
@@ -931,18 +1008,18 @@ def build_docx(filename):
             p.paragraph_format.space_after = Pt(1)
             p.paragraph_format.space_before = Pt(1)
             run = p.add_run(val)
-            run.font.size = Pt(6.8)
+            run.font.size = Pt(6.6)
             if r_idx == 0:
                 run.bold = True
                 run.font.color.rgb = RGBColor(255, 255, 255)
 
     doc.add_page_break()
 
-    # Halaman 5 Docx
+    # Halaman 6 Docx: BAGIAN E, G, DAN H
     h5 = doc.add_paragraph()
-    r = h5.add_run("Representasi Response JSON & Format Error Terstandar")
+    r = h5.add_run("22. Kelengkapan M2 — Bagian E, G, dan H: Representasi JSON, Non-CRUD, & Keputusan Desain")
     r.bold = True
-    r.font.size = Pt(11)
+    r.font.size = Pt(10.5)
     r.font.color.rgb = RGBColor(30, 58, 138)
 
     p = doc.add_paragraph()
@@ -966,17 +1043,18 @@ def build_docx(filename):
     "total": 6,
     "last_page": 3
   }
-}""").font.size = Pt(8)
+}""").font.size = Pt(7.5)
 
     p2 = doc.add_paragraph()
-    p2.add_run("Pola Aksi Non-CRUD & Catatan Keputusan Desain:\n").bold = True
+    p2.add_run("Pola Aksi Non-CRUD & Catatan Keputusan Desain Arsitektur:\n").bold = True
     p2.add_run("""• Aksi Pembatalan (POST /bookings/{id}/cancellation): Pola sub-resource proses untuk mencatat audit refund & pelepasan lock slot.
 • Aksi Pembayaran DP (POST /bookings/{id}/payments): Sub-resource pembayaran dengan Midtrans Snap & callback webhook idempotent.
 • PUT vs PATCH: Keduanya didukung pada /manage/courts/{id} dan /manage/venues/{id}. PUT untuk replace utuh, PATCH untuk mutasi parsial.
-• Versioning: Prefix /api/v1 untuk proteksi kontrak jangka panjang tanpa merusak client lawas.""").font.size = Pt(8.5)
+• Versioning: Prefix /api/v1 untuk proteksi kontrak jangka panjang tanpa merusak client lawas.
+• Arsitektur Concurrency Guard: 4-lapis proteksi anti double booking yang menjamin penolakan 409 Conflict saat bentrok slot.""").font.size = Pt(8)
 
     doc.save(filename)
-    print(f"Successfully generated synchronized 5-page DOCX: {filename}")
+    print(f"Successfully generated synchronized 6-page DOCX: {filename}")
 
 if __name__ == "__main__":
     pdf_path = r"c:\xampp\htdocs\booking_lapangan\Tugas_Minggu_4_Workshop_Desain_REST_API_Kelompok_3.pdf"
