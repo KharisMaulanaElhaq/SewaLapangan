@@ -40,6 +40,23 @@ Struktur root dokumen OpenAPI v3.1.0 disusun untuk merepresentasikan metadata pr
    - Didefinisikan di `components.securitySchemes.bearerAuth` dengan tipe `http`, skema `bearer`, dan format `JWT`.
    - Diterapkan secara default di root level `security: [{ bearerAuth: [] }]`, dan dinonaktifkan secara eksplisit pada rute publik menggunakan `security: []`.
 
+#### Bukti & Area Screenshot Percobaan di Swagger UI (Point 22.1 Butir 3):
+Sesuai instruksi Point 22.1 butir ke-3 (*"Buka di Swagger Editor; pastikan tidak ada error"*), pengujian mandiri dilakukan untuk memvalidasi kerangka dokumen dan otorisasi:
+- **Endpoint yang Diujikan:**
+  1. **Endpoint Publik (`GET /venues`):** Membuktikan endpoint publik dapat langsung diuji (*Try it out* -> *Execute*) tanpa token dan mengembalikan status `200 OK`.
+  2. **Fitur Keamanan Global (`bearerAuth`):** Membuktikan tombol gembok hijau **Authorize** aktif dan endpoint terproteksi (`GET /me`) menolak request tanpa token (`401 Unauthorized`) serta menerima request setelah token Bearer dimasukkan.
+
+```
++---------------------------------------------------------------------------------------+
+|          [ TEMPAT MENEMPELKAN SCREENSHOT PERCOBAAN SWAGGER (POINT 22.1) ]             |
+|                                                                                       |
+|  Petunjuk Mahasiswa:                                                                  |
+|  1. Silakan hapus bingkai/teks panduan ini pada dokumen Microsoft Word (.docx).       |
+|  2. Tekan tombol Ctrl + V untuk menempelkan gambar screenshot pengujian Swagger Anda. |
+|  3. Simpan dan ekspor ke PDF sebelum diunggah ke portal LMS kampus.                   |
++---------------------------------------------------------------------------------------+
+```
+
 ---
 
 ### 22.2 Aktivitas 2 – Paths dan Operations (31 Operation Lengkap)
@@ -114,38 +131,6 @@ Berikut adalah evaluasi penilaian kontrak API SportVenue berdasarkan 8 butir sta
 1. **Resolusi Unused Component Warning**: Menghubungkan relasi objek `payments` ke dalam schema `Booking` agar komponen `Payment` terintegrasi penuh dalam respons detail pemesanan.
 2. **Penyelarasan Server Dev Lokal**: Menambahkan konfigurasi `redocly.yaml` untuk mengizinkan `localhost:8000` sebagai basis URL dev tanpa memunculkan peringatan `no-server-example-com`.
 3. **Penyempurnaan Tipe Data OAS 3.1**: Menjamin seluruh field opsional menggunakan notasi `type: [string, "null"]` sesuai spesifikasi JSON Schema 2020-12.
-
----
-
-### 22.5 Panduan & Template Bukti Screenshot Percobaan di Swagger Editor / Swagger UI
-
-Bagian ini disediakan khusus untuk melampirkan bukti pengujian mandiri (*Try it out*) pada Swagger Editor atau Swagger UI lokal:
-
-#### A. Panduan Pengujian Mandiri oleh Mahasiswa:
-1. **Membuka Kontrak di Swagger:**
-   - **Opsi Online:** Kunjungi [https://editor.swagger.io](https://editor.swagger.io) -> Salin seluruh teks dari file `docs/openapi.yaml` -> Tempelkan (*paste*) ke panel editor Swagger di sisi kiri.
-   - **Opsi Lokal Proyek:** Jalankan web server lokal bawaan PHP di terminal `c:\xampp\htdocs\booking_lapangan`:
-     ```powershell
-     php -S 127.0.0.1:8000 -t docs
-     ```
-     Lalu buka peramban (*browser*) pada alamat: [http://127.0.0.1:8000/swagger.html](http://127.0.0.1:8000/swagger.html).
-2. **Melakukan Percobaan Request (Try It Out):**
-   - **Uji Coba Katalog Publik:** Buka tag **Venues** -> pilih `GET /venues` -> klik tombol **Try it out** -> masukkan parameter `city: Tegal` -> klik tombol biru **Execute** -> amati Server Response `200 OK` dengan daftar JSON venue.
-   - **Uji Coba Fitur Keamanan (Authorize):** Klik tombol gembok hijau **Authorize** di pojok kanan atas Swagger UI -> masukkan token dummy (misal: `1|sampleTokenSanctum123`) -> klik **Authorize** -> **Close**.
-3. **Mengambil & Menempelkan Screenshot:**
-   - Ambil tangkapan layar menggunakan tombol `Win + Shift + S` pada Windows.
-   - Tempelkan (*paste*) gambar tangkapan layar Anda pada area kotak di bawah ini di dalam file Word/PDF laporan tugas:
-
-```
-+---------------------------------------------------------------------------------------+
-|              [ AREA TEMPAT MENEMPELKAN GAMBAR SCREENSHOT SWAGGER UI ]                 |
-|                                                                                       |
-|  Petunjuk:                                                                            |
-|  1. Silakan hapus bingkai/teks panduan ini pada dokumen Microsoft Word (.docx).       |
-|  2. Tekan tombol Ctrl + V untuk menempelkan gambar screenshot pengujian Swagger Anda. |
-|  3. Simpan dan ekspor ke PDF sebelum diunggah ke portal LMS kampus.                   |
-+---------------------------------------------------------------------------------------+
-```
 
 ---
 

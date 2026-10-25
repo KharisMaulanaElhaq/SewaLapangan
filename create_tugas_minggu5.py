@@ -281,6 +281,42 @@ def build_pdf(filename):
         ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
     ]))
     story.append(act1_table)
+    story.append(Spacer(1, 4))
+
+    # Bukti & Area Screenshot Swagger (Point 22.1 Butir 3)
+    story.append(Paragraph("<b>Bukti & Area Screenshot Percobaan di Swagger UI (Point 22.1 Butir 3):</b>", h2_style))
+    ss_guide_221 = (
+        "<i>Sesuai instruksi Point 22.1 butir ke-3, kontrak dibuka di Swagger Editor / UI untuk memastikan tidak ada error sintaks. "
+        "Endpoint terkait yang diujikan meliputi endpoint publik (<b>GET /venues</b>) serta fitur otorisasi global Bearer Token "
+        "(tombol <b>Authorize</b> dan <b>GET /me</b>).</i>"
+    )
+    story.append(Paragraph(ss_guide_221, body_style))
+    story.append(Spacer(1, 3))
+
+    ss_box_data = [
+        [
+            Paragraph(
+                "<font color='#1E3A8A'><b>[ AREA TEMPAT MENEMPELKAN SCREENSHOT PERCOBAAN SWAGGER (POINT 22.1) ]</b></font><br/><br/>"
+                "<font color='#64748B'><i>Panduan untuk Mahasiswa:<br/>"
+                "• Buka file <code>docs/swagger.html</code> pada browser (atau buka https://editor.swagger.io).<br/>"
+                "• Lakukan pengujian pada endpoint publik (e.g. <code>GET /venues</code>) atau klik tombol hijau <b>Authorize</b>.<br/>"
+                "• Tekan <b>Win + Shift + S</b> untuk mengambil screenshot, lalu tempelkan (<b>Ctrl + V</b>) ke dalam kotak ini pada file Word (.docx).<br/>"
+                "• Teks panduan ini dapat dihapus setelah gambar ditempelkan.</i></font>",
+                callout_text
+            )
+        ]
+    ]
+    ss_box_table = Table(ss_box_data, colWidths=[523])
+    ss_box_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F1F5F9')),
+        ('BOX', (0,0), (-1,-1), 1.2, colors.HexColor('#94A3B8')),
+        ('TOPPADDING', (0,0), (-1,-1), 10),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+        ('LEFTPADDING', (0,0), (-1,-1), 14),
+        ('RIGHTPADDING', (0,0), (-1,-1), 14),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ]))
+    story.append(ss_box_table)
     story.append(Spacer(1, 8))
 
     # ---------------------------------------------------------
@@ -519,45 +555,6 @@ def build_pdf(filename):
     story.append(Spacer(1, 8))
 
     # ---------------------------------------------------------
-    # Section 22.5: Panduan & Area Screenshot Swagger UI
-    # ---------------------------------------------------------
-    story.append(Paragraph("22.5 Panduan & Area Bukti Screenshot Percobaan Swagger UI (Try It Out)", h1_style))
-    ss_guide_text = (
-        "<b>Petunjuk Mahasiswa untuk Pengujian Mandiri:</b><br/>"
-        "1. Buka file interaktif <code>docs/swagger.html</code> pada browser (atau buka https://editor.swagger.io dan paste <code>docs/openapi.yaml</code>).<br/>"
-        "2. Coba salah satu endpoint (misal <b>Venues</b> -> <code>GET /venues</code>), klik <b>Try it out</b> -> masukkan parameter <code>city: Tegal</code> -> klik <b>Execute</b>.<br/>"
-        "3. Ambil screenshot dengan <code>Win + Shift + S</code>, lalu tempelkan (*paste*) gambar ke dalam area kotak di bawah pada file Word (.docx) sebelum dikumpulkan."
-    )
-    story.append(Paragraph(ss_guide_text, body_style))
-    story.append(Spacer(1, 4))
-
-    ss_box_data = [
-        [
-            Paragraph(
-                "<font color='#1E3A8A'><b>[ AREA TEMPAT MENEMPELKAN SCREENSHOT PERCOBAAN SWAGGER UI ]</b></font><br/><br/>"
-                "<font color='#64748B'><i>Panduan untuk Mahasiswa:<br/>"
-                "• Pada dokumen Microsoft Word (.docx), klik teks di dalam kotak ini lalu hapus panduan ini.<br/>"
-                "• Tekan <b>Ctrl + V</b> untuk menempelkan gambar tangkapan layar pengujian Swagger Anda.<br/>"
-                "• Screenshot dapat mencakup header Swagger UI (Judul, OAS 3.1.0, tombol Authorize) atau respons 200 OK hasil Try it out.<br/>"
-                "• Setelah gambar ditempelkan, simpan file Word dan ekspor kembali menjadi PDF untuk diunggah ke LMS.</i></font>",
-                callout_text
-            )
-        ]
-    ]
-    ss_box_table = Table(ss_box_data, colWidths=[523])
-    ss_box_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F1F5F9')),
-        ('BOX', (0,0), (-1,-1), 1.2, colors.HexColor('#94A3B8')),
-        ('TOPPADDING', (0,0), (-1,-1), 14),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 14),
-        ('LEFTPADDING', (0,0), (-1,-1), 16),
-        ('RIGHTPADDING', (0,0), (-1,-1), 16),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-    ]))
-    story.append(ss_box_table)
-    story.append(Spacer(1, 8))
-
-    # ---------------------------------------------------------
     # Section 24: Rekapitulasi Pemenuhan Tugas & Rubrik Asesmen
     # ---------------------------------------------------------
     story.append(Paragraph("24. Rekapitulasi Pemenuhan Tugas Kelompok & Rubrik Asesmen (Milestone M2)", h1_style))
@@ -790,6 +787,50 @@ def build_docx(filename):
 
     doc.add_paragraph()
 
+    # Bukti & Area Screenshot Swagger UI (Point 22.1 Butir 3)
+    h_ss_221 = doc.add_paragraph()
+    r = h_ss_221.add_run("Bukti & Area Screenshot Percobaan di Swagger UI (Point 22.1 Butir 3)")
+    r.bold = True
+    r.font.name = "Arial"
+    r.font.size = Pt(10)
+    r.font.color.rgb = RGBColor(13, 148, 136)
+
+    p_ss_221 = doc.add_paragraph()
+    r = p_ss_221.add_run(
+        "Sesuai instruksi Point 22.1 butir ke-3, kontrak dibuka di Swagger Editor / UI untuk memastikan tidak ada error sintaks. "
+        "Endpoint terkait yang diujikan meliputi endpoint publik (GET /venues) serta fitur otorisasi global Bearer Token (tombol Authorize dan GET /me)."
+    )
+    r.font.name = "Arial"
+    r.font.size = Pt(8)
+    r.italic = True
+
+    ss_table = doc.add_table(rows=1, cols=1)
+    ss_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    cell_ss = ss_table.rows[0].cells[0]
+    set_cell_background(cell_ss, "F1F5F9")
+    set_cell_margins(cell_ss, top=140, bottom=140, left=160, right=160)
+    p_box = cell_ss.paragraphs[0]
+    p_box.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r_box_title = p_box.add_run("[ AREA TEMPAT MENEMPELKAN SCREENSHOT PERCOBAAN SWAGGER (POINT 22.1) ]\n\n")
+    r_box_title.bold = True
+    r_box_title.font.name = "Arial"
+    r_box_title.font.size = Pt(9.5)
+    r_box_title.font.color.rgb = RGBColor(30, 58, 138)
+
+    r_box_desc = p_box.add_run(
+        "Panduan untuk Mahasiswa:\n"
+        "• Klik di sini, hapus teks panduan ini jika Anda sudah siap menempelkan gambar.\n"
+        "• Tekan Ctrl + V untuk menempelkan gambar tangkapan layar pengujian Swagger Anda.\n"
+        "• Screenshot dapat mencakup header Swagger UI (Judul, OAS 3.1.0, tombol Authorize) atau respons 200 OK hasil Try it out.\n"
+        "• Simpan file Word ini dan ekspor ke PDF sebelum diunggah ke portal LMS."
+    )
+    r_box_desc.italic = True
+    r_box_desc.font.name = "Arial"
+    r_box_desc.font.size = Pt(8)
+    r_box_desc.font.color.rgb = RGBColor(100, 116, 139)
+
+    doc.add_paragraph()
+
     # ---------------------------------------------------------
     # Section 22.2
     # ---------------------------------------------------------
@@ -969,53 +1010,6 @@ def build_docx(filename):
                 r.font.color.rgb = RGBColor(255, 255, 255)
             else:
                 r.font.color.rgb = RGBColor(30, 41, 59)
-
-    doc.add_paragraph()
-
-    # ---------------------------------------------------------
-    # Section 22.5: Panduan & Area Screenshot Swagger UI
-    # ---------------------------------------------------------
-    h_ss = doc.add_paragraph()
-    r = h_ss.add_run("22.5 Panduan & Area Bukti Screenshot Percobaan Swagger UI (Try It Out)")
-    r.bold = True
-    r.font.name = "Arial"
-    r.font.size = Pt(11)
-    r.font.color.rgb = RGBColor(30, 58, 138)
-
-    p_ss = doc.add_paragraph()
-    r = p_ss.add_run(
-        "Petunjuk Mahasiswa untuk Pengujian Mandiri:\n"
-        "1. Buka file interaktif docs/swagger.html pada browser (atau buka https://editor.swagger.io dan paste docs/openapi.yaml).\n"
-        "2. Coba salah satu endpoint (misal Venues -> GET /venues), klik Try it out -> masukkan parameter -> klik Execute.\n"
-        "3. Ambil screenshot dengan Win + Shift + S, lalu tempelkan (paste) gambar ke dalam kotak tabel di bawah ini."
-    )
-    r.font.name = "Arial"
-    r.font.size = Pt(8.5)
-
-    ss_table = doc.add_table(rows=1, cols=1)
-    ss_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    cell_ss = ss_table.rows[0].cells[0]
-    set_cell_background(cell_ss, "F1F5F9")
-    set_cell_margins(cell_ss, top=180, bottom=180, left=180, right=180)
-    p_box = cell_ss.paragraphs[0]
-    p_box.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r_box_title = p_box.add_run("[ AREA TEMPAT MENEMPELKAN SCREENSHOT PERCOBAAN SWAGGER UI ]\n\n")
-    r_box_title.bold = True
-    r_box_title.font.name = "Arial"
-    r_box_title.font.size = Pt(9.5)
-    r_box_title.font.color.rgb = RGBColor(30, 58, 138)
-
-    r_box_desc = p_box.add_run(
-        "Panduan untuk Mahasiswa:\n"
-        "• Klik di sini, hapus teks panduan ini jika Anda sudah siap menempelkan gambar.\n"
-        "• Tekan Ctrl + V untuk menempelkan gambar tangkapan layar pengujian Swagger Anda.\n"
-        "• Screenshot dapat mencakup header Swagger UI (Judul, OAS 3.1.0, tombol Authorize) atau respons 200 OK hasil Try it out.\n"
-        "• Simpan file Word ini dan ekspor ke PDF sebelum diunggah ke portal LMS."
-    )
-    r_box_desc.italic = True
-    r_box_desc.font.name = "Arial"
-    r_box_desc.font.size = Pt(8)
-    r_box_desc.font.color.rgb = RGBColor(100, 116, 139)
 
     doc.add_paragraph()
 
