@@ -1,0 +1,2079 @@
+openapi: 3.1.0
+info:
+  title: SportVenue Core Booking API
+  version: 1.0.0
+  description: |
+    # SportVenue RESTful API Specification (v1)
+    Kontrak API resmi platform penyewaan lapangan olahraga terintegrasi (**SportVenue**).
+    Disusun berdasarkan prinsip **API-first** sebagai *single source of truth* bagi tim frontend, backend Laravel, dan quality assurance.
+    
+    ### Fitur Utama Arsitektur:
+    - **Resource-Oriented RESTful Architecture**: Seluruh URI menggunakan kata benda jamak (*kebab-case*) tanpa kata kerja.
+    - **Pencegahan Concurrency Anti Double-Booking**: Didukung mekanisme transaksi atomik, holding kuota 15 menit, dan validasi *unique composite index* database.
+    - **Integrasi Payment Gateway**: Mendukung Midtrans Snap Token dan penanganan callback webhook berstatus *idempotent* (HMAC SHA-512).
+    - **Paginasi Standar Industri**: Model *offset-based pagination* dengan pembatasan kuota keras (*hard cap*) untuk menangkal kerentanan OWASP API4.
+    - **RFC 9110 HTTP Semantic Status Codes**: Pemisahan semantik antara 401 vs 403, 409 vs 422, serta 201 vs 204.
+  contact:
+    name: Kelompok 3 - Pemrograman Web Service (Universitas Harkat Negeri)
+    email: kel3-webservice@kampus.id
+    url: https://github.com/KharisMaulanaElhaq/SewaLapangan
+  license:
+    name: Creative Commons Attribution 4.0 International (CC BY 4.0)
+    url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Server Pengembangan Lokal (Laravel API Server)
+  - url: https://api.sportvenue.id/api/v1
+    description: Server Produksi / Staging Gateway
+
+tags:
+  - name: Auth
+    description: Autentikasi kredensial pengguna, registrasi akun, penerbitan Sanctum Bearer Token, dan pencabutan sesi.
+  - name: Users
+    description: Manajemen profil mandiri pengguna aktif (Singleton /me).
+  - name: Venues
+    description: Penelusuran katalog venue olahraga publik, pencarian teks, filtering cabang olahraga, dan detail fasilitas.
+  - name: Courts
+    description: Informasi spesifikasi lapangan fisik, jenis cabang olahraga, dan jam operasional.
+  - name: Availability
+    description: Engine kalkulasi matriks ketersediaan slot sewa jam dan tarif per tanggal secara dinamis.
+  - name: Bookings
+    description: Siklus reservasi lapangan olahraga, hold slot sementara, riwayat sewa, dan pengajuan pembatalan (refund).
+  - name: Payments
+    description: Inisialisasi token pembayaran digital Midtrans Snap dan penanganan webhook callback secara aman.
+  - name: Manage - Venues
+    description: Operasional mitra pengelola untuk pembuatan dan pembaruan profil venue olahraga.
+  - name: Manage - Courts
+    description: Operasional mitra pengelola untuk konfigurasi lapangan dan toggle status aktif lapangan.
+  - name: Manage - Prices
+    description: Konfigurasi struktur tarif sewa lapangan (reguler, peak hour, dan akhir pekan).
+  - name: Manage - Schedule Blocks
+    description: Penjadwalan pemblokiran slot operasional lapangan untuk perawatan (*maintenance*) atau turnamen.
+  - name: Manage - Bookings
+    description: Operasional mitra pengelola untuk memverifikasi kedatangan pelanggan (COMPLETED / NO_SHOW).
+  - name: Admin - Users
+    description: Hak akses administrator sistem untuk memantau pengguna dan verifikasi akun mitra pengelola baru.
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ==========================================
+  # AUTHENTICATION & PROFILE
+  # ==========================================
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registrasi pengguna baru
+      description: |
+        Mendaftarkan akun baru pada platform SportVenue. 
+        - Role `penyewa` langsung berstatus `active` dan dapat langsung login.
+        - Role `pengelola` mendapatkan status `pending` dan menunggu proses verifikasi verifikator admin.
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Akun pengguna berhasil didaftarkan
+          headers:
+            Location:
+              description: URI profil pengguna baru
+              schema:
+                type: string
+                example: /api/v1/me
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Autentikasi pengguna dan penerbitan token
+      description: Memverifikasi email dan kata sandi pengguna, kemudian menerbitkan Laravel Sanctum Bearer Token.
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Autentikasi berhasil, token akses dikembalikan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Keluar dan pencabutan token aktif
+      description: Mencabut dan menghapus token Sanctum yang sedang digunakan untuk sesi saat ini.
+      operationId: logoutUser
+      responses:
+        "204":
+          description: Token sesi berhasil dicabut, tidak ada konten yang dikembalikan
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /me:
+    get:
+      tags: [Users]
+      summary: Ambil profil pengguna aktif
+      description: Mengambil data diri akun pengguna yang sedang terautentikasi melalui Bearer Token.
+      operationId: getCurrentUserProfile
+      responses:
+        "200":
+          description: Profil pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ==========================================
+  # PUBLIC DISCOVERY: VENUES & COURTS
+  # ==========================================
+  /venues:
+    get:
+      tags: [Venues]
+      summary: Katalog venue olahraga publik
+      description: |
+        Menampilkan daftar katalog venue olahraga yang memiliki lapangan aktif. 
+        Mendukung pencarian teks nama/lokasi, penyaringan kota dan cabang olahraga, serta pengurutan harga terendah (*starting price*).
+      operationId: listVenues
+      security: []
+      parameters:
+        - name: city
+          in: query
+          description: Filter lokasi berdasarkan kota
+          schema:
+            type: string
+            example: Tegal
+        - name: sport_type
+          in: query
+          description: Filter berdasarkan cabang olahraga yang tersedia
+          schema:
+            type: string
+            enum: [futsal, badminton, basketball, mini_soccer]
+            example: futsal
+        - name: min_price
+          in: query
+          description: Batas tarif minimum per jam (Rupiah)
+          schema:
+            type: integer
+            minimum: 0
+            example: 50000
+        - name: max_price
+          in: query
+          description: Batas tarif maksimum per jam (Rupiah)
+          schema:
+            type: integer
+            minimum: 0
+            example: 200000
+        - name: q
+          in: query
+          description: Kata kunci pencarian nama venue, alamat, atau kota
+          schema:
+            type: string
+            maxLength: 100
+            example: garuda
+        - name: sort
+          in: query
+          description: "Parameter pengurutan. Gunakan tanda '-' untuk urutan menurun (descending)."
+          schema:
+            type: string
+            enum: [name, -name, created_at, -created_at, starting_price, -starting_price]
+            default: name
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
+      responses:
+        "200":
+          description: Daftar katalog venue berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VenueList"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /venues/{id}:
+    get:
+      tags: [Venues]
+      summary: Detail lengkap profil venue
+      description: Mengambil informasi detail profil satu venue tertentu beserta kebijakan DP dan pembatalan sewa.
+      operationId: getVenueDetail
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/VenueId"
+      responses:
+        "200":
+          description: Data detail venue berhasil ditemukan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Venue"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /venues/{id}/courts:
+    get:
+      tags: [Courts]
+      summary: Daftar lapangan dalam venue
+      description: Menampilkan seluruh unit lapangan fisik yang aktif di dalam suatu venue olahraga.
+      operationId: listCourtsByVenue
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/VenueId"
+      responses:
+        "200":
+          description: Daftar lapangan dalam venue berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Court"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /courts/{id}:
+    get:
+      tags: [Courts]
+      summary: Detail satu unit lapangan
+      description: Mengambil data spesifikasi fisik satu lapangan beserta relasi venue induknya.
+      operationId: getCourtDetail
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/CourtId"
+      responses:
+        "200":
+          description: Detail lapangan berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Court"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /courts/{id}/prices:
+    get:
+      tags: [Courts]
+      summary: Daftar struktur tarif sewa lapangan
+      description: Mengambil aturan harga per jam berdasarkan kategori hari (weekday/weekend/peak hour).
+      operationId: getCourtPrices
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/CourtId"
+      responses:
+        "200":
+          description: Struktur tarif sewa berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CourtPrice"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /courts/{id}/operating-hours:
+    get:
+      tags: [Courts]
+      summary: Jadwal jam operasional lapangan
+      description: Mengambil jam buka dan tutup lapangan untuk 7 hari dalam sepekan (0 = Minggu s.d. 6 = Sabtu).
+      operationId: getCourtOperatingHours
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/CourtId"
+      responses:
+        "200":
+          description: Jam operasional berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CourtOperatingHour"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /courts/{id}/availability:
+    get:
+      tags: [Availability]
+      summary: Matriks ketersediaan slot sewa per tanggal
+      description: |
+        Menghitung status ketersediaan slot jam operasional secara dinamis pada tanggal tertentu.
+        Status per slot dapat bernilai:
+        - `AVAILABLE`: Siap dipesan.
+        - `HOLD`: Sedang dikunci sementara oleh transaksi pemesan lain (batas 15 menit).
+        - `BOOKED`: Sudah dibayar / terkonfirmasi.
+        - `BLOCKED`: Ditutup untuk perawatan venue atau turnamen.
+      operationId: checkCourtAvailability
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/CourtId"
+        - name: play_date
+          in: query
+          required: true
+          description: Tanggal rencana bermain (format YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2026-10-25"
+      responses:
+        "200":
+          description: Matriks ketersediaan slot berhasil dikalkulasi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourtAvailability"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  # ==========================================
+  # BOOKING TRANSACTIONS & PAYMENTS
+  # ==========================================
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Buat transaksi booking baru (Hold Slot Atomik)
+      description: |
+        Membuat reservasi booking baru oleh penyewa.
+        - Sistem mengunci slot waktu secara atomik pada tabel `booking_slots` (`unique composite index`).
+        - Status pesanan menjadi `PENDING_PAYMENT` dengan batas waktu pembayaran DP selama 15 menit.
+        - Jika slot bertabrakan pada detik yang sama, sistem merespons status `409 Conflict`.
+      operationId: createBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Reservasi booking berhasil dibuat, slot terkunci sementara
+          headers:
+            Location:
+              description: URI rincian pesanan baru
+              schema:
+                type: string
+                example: /api/v1/bookings/45
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, message, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Booking berhasil dibuat. Slot Anda terkunci (HOLD) selama 15 menit.
+                  data:
+                    $ref: "#/components/schemas/Booking"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+    get:
+      tags: [Bookings]
+      summary: Riwayat transaksi booking penyewa
+      description: Menampilkan daftar riwayat booking milik pengguna yang sedang login dengan filter status dan rentang tanggal bermain.
+      operationId: listUserBookings
+      parameters:
+        - name: status
+          in: query
+          description: Filter status transaksi booking
+          schema:
+            type: string
+            enum: [PENDING_PAYMENT, CONFIRMED, COMPLETED, CANCELLED, EXPIRED, NO_SHOW]
+            example: CONFIRMED
+        - name: court_id
+          in: query
+          description: Filter berdasarkan lapangan tertentu
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - name: date_from
+          in: query
+          description: Filter tanggal awal sewa (format YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2026-10-01"
+        - name: date_to
+          in: query
+          description: Filter tanggal akhir sewa (format YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2026-10-31"
+        - name: q
+          in: query
+          description: Pencarian berdasarkan kode booking unik
+          schema:
+            type: string
+            example: BK-20261021
+        - name: sort
+          in: query
+          description: Field pengurutan data riwayat booking
+          schema:
+            type: string
+            enum: [created_at, -created_at, total_price, -total_price, expires_at, -expires_at]
+            default: -created_at
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
+      responses:
+        "200":
+          description: Daftar riwayat transaksi booking berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /bookings/{id}:
+    get:
+      tags: [Bookings]
+      summary: Detail faktur transaksi booking
+      description: Mengambil data lengkap pemesanan, daftar slot jam, rincian pembayaran DP, dan kebijakan refund yang berlaku.
+      operationId: getBookingDetail
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "200":
+          description: Detail transaksi booking berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Booking"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /bookings/{id}/payments:
+    post:
+      tags: [Payments]
+      summary: Inisialisasi token pembayaran Midtrans Snap
+      description: |
+        Menghasilkan Snap Token dan redirect payment URL dari gateway Midtrans untuk tagihan DP pesanan.
+        Hanya dapat diproses jika status pesanan masih `PENDING_PAYMENT` dan belum kadaluarsa.
+      operationId: initiateBookingPayment
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "201":
+          description: Token pembayaran digital berhasil diinisialisasi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentInitResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Booking sudah tidak valid untuk dibayar (sudah lunas / expired)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                status: error
+                message: Transaksi sudah dibayar atau telah melewati batas holding pembayaran.
+                code: PAYMENT_NOT_ALLOWED
+
+  /bookings/{id}/cancellation:
+    post:
+      tags: [Bookings]
+      summary: Pengajuan pembatalan sewa lapangan
+      description: |
+        Membatalkan pesanan yang telah dikonfirmasi dan menghitung persentase pengembalian dana (*refund*)
+        berdasarkan audit snapshot kebijakan venue (misal H-24 refund 50%, < H-24 no refund).
+        Slot yang dibatalkan otomatis dilepas kembali menjadi `AVAILABLE`.
+      operationId: cancelBooking
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingCancellationInput"
+      responses:
+        "200":
+          description: Pembatalan sewa berhasil diproses
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, message, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Pemesanan berhasil dibatalkan sesuai dengan ketentuan pengembalian dana venue.
+                  data:
+                    $ref: "#/components/schemas/Booking"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Pemesanan tidak dapat dibatalkan (misal waktu bermain telah lewat atau status sudah COMPLETED)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                status: error
+                message: Pemesanan sudah tidak dapat dibatalkan karena waktu bermain telah dimulai.
+                code: CANCEL_NOT_PERMITTED
+
+  /payments/webhook/midtrans:
+    post:
+      tags: [Payments]
+      summary: Callback notifikasi pembayaran dari Midtrans
+      description: |
+        Menerima notifikasi status transaksi pembayaran secara asinkron dari payment gateway.
+        - Memvalidasi signature hash HMAC SHA-512.
+        - Memproses perubahan status secara idempoten (*idempotent transaction processing*).
+      operationId: handleMidtransWebhook
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MidtransWebhookPayload"
+      responses:
+        "200":
+          description: Notifikasi webhook berhasil diverifikasi dan diproses
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, message]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Webhook diproses secara idempoten.
+        "401":
+          description: Signature payload tidak valid atau checksum HMAC gagal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                status: error
+                message: Invalid signature key hash.
+                code: INVALID_WEBHOOK_SIGNATURE
+
+  # ==========================================
+  # PARTNER / MANAGER RESOURCE MANAGEMENT
+  # ==========================================
+  /manage/venues:
+    post:
+      tags: [Manage - Venues]
+      summary: Daftarkan lokasi venue baru
+      description: Menambahkan data venue olahraga baru yang dikelola oleh mitra pengelola aktif.
+      operationId: createManagedVenue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VenueInput"
+      responses:
+        "201":
+          description: Venue berhasil didaftarkan
+          headers:
+            Location:
+              description: URI detail venue baru
+              schema:
+                type: string
+                example: /api/v1/venues/15
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Venue"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /manage/venues/{id}:
+    put:
+      tags: [Manage - Venues]
+      summary: Perbarui data profil venue secara menyeluruh
+      description: Mengganti seluruh data atribut venue yang dimiliki oleh pengelola yang login.
+      operationId: updateManagedVenue
+      parameters:
+        - $ref: "#/components/parameters/VenueId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VenueInput"
+      responses:
+        "200":
+          description: Profil venue berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Venue"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+    delete:
+      tags: [Manage - Venues]
+      summary: Hapus venue olahraga
+      description: Menghapus data venue beserta relasi lapangannya. Hanya diperbolehkan jika tidak ada transaksi aktif yang sedang berjalan.
+      operationId: deleteManagedVenue
+      parameters:
+        - $ref: "#/components/parameters/VenueId"
+      responses:
+        "204":
+          description: Venue berhasil dihapus
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Venue tidak dapat dihapus karena masih memiliki pesanan aktif
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /manage/courts:
+    post:
+      tags: [Manage - Courts]
+      summary: Tambah unit lapangan baru
+      description: Menambahkan lapangan olahraga fisik ke dalam venue yang dikelola.
+      operationId: createManagedCourt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourtInput"
+      responses:
+        "201":
+          description: Lapangan berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Court"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /manage/courts/{id}:
+    put:
+      tags: [Manage - Courts]
+      summary: Perbarui spesifikasi lapangan secara penuh
+      description: Memperbarui nama dan jenis cabang olahraga lapangan secara menyeluruh.
+      operationId: updateManagedCourt
+      parameters:
+        - $ref: "#/components/parameters/CourtId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourtInput"
+      responses:
+        "200":
+          description: Lapangan berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Court"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+    patch:
+      tags: [Manage - Courts]
+      summary: Toggle status keaktifan lapangan (Parsial)
+      description: Mengubah status aktif/non-aktif operasional lapangan tanpa mengubah data spesifikasi lainnya.
+      operationId: patchCourtStatus
+      parameters:
+        - $ref: "#/components/parameters/CourtId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourtPatchStatusInput"
+      responses:
+        "200":
+          description: Status keaktifan lapangan berhasil diubah
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Court"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+    delete:
+      tags: [Manage - Courts]
+      summary: Hapus unit lapangan
+      description: Menghapus data lapangan jika tidak ada riwayat booking aktif terkait.
+      operationId: deleteManagedCourt
+      parameters:
+        - $ref: "#/components/parameters/CourtId"
+      responses:
+        "204":
+          description: Lapangan berhasil dihapus
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /manage/prices:
+    post:
+      tags: [Manage - Prices]
+      summary: Tambah aturan tarif sewa lapangan
+      description: Mendaftarkan aturan harga sewa per jam untuk rentang waktu dan tipe hari tertentu.
+      operationId: createCourtPrice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourtPriceInput"
+      responses:
+        "201":
+          description: Aturan harga berhasil disimpan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/CourtPrice"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /manage/prices/{id}:
+    delete:
+      tags: [Manage - Prices]
+      summary: Hapus aturan tarif sewa
+      description: Menghapus aturan harga sewa spesifik berdasarkan ID.
+      operationId: deleteCourtPrice
+      parameters:
+        - $ref: "#/components/parameters/PriceId"
+      responses:
+        "204":
+          description: Aturan tarif berhasil dihapus
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /manage/blocks:
+    post:
+      tags: [Manage - Schedule Blocks]
+      summary: Buat pemblokiran jadwal lapangan
+      description: Menutup rentang waktu tertentu pada lapangan untuk keperluan perawatan berkala atau turnamen tertutup.
+      operationId: createScheduleBlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleBlockInput"
+      responses:
+        "201":
+          description: Pemblokiran jadwal berhasil dicatat
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/ScheduleBlock"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Rentang waktu bentrok dengan pesanan booking penyewa yang sudah ada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /manage/blocks/{id}:
+    delete:
+      tags: [Manage - Schedule Blocks]
+      summary: Batalkan pemblokiran jadwal
+      description: Membuka kembali slot operasional yang sebelumnya diblokir.
+      operationId: deleteScheduleBlock
+      parameters:
+        - $ref: "#/components/parameters/BlockId"
+      responses:
+        "204":
+          description: Pemblokiran jadwal berhasil dibatalkan
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /manage/bookings/{id}/status:
+    patch:
+      tags: [Manage - Bookings]
+      summary: Pembaruan status operasional pesanan
+      description: Mengubah status booking menjadi `COMPLETED` saat pelanggan hadir dan selesai bermain, atau `NO_SHOW` jika tidak hadir.
+      operationId: updateBookingStatus
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingStatusUpdateInput"
+      responses:
+        "200":
+          description: Status operasional pesanan berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: "#/components/schemas/Booking"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  # ==========================================
+  # SYSTEM ADMINISTRATOR
+  # ==========================================
+  /admin/users:
+    get:
+      tags: [Admin - Users]
+      summary: Kelola daftar pengguna sistem
+      description: Menampilkan seluruh data pengguna terdaftar dengan filter role dan status keaktifan. Khusus peran Administrator.
+      operationId: listUsersAdmin
+      parameters:
+        - name: role
+          in: query
+          description: Filter berdasarkan peran pengguna
+          schema:
+            type: string
+            enum: [penyewa, pengelola, admin]
+            example: pengelola
+        - name: status
+          in: query
+          description: Filter berdasarkan status akun
+          schema:
+            type: string
+            enum: [active, pending, suspended]
+            example: pending
+        - name: q
+          in: query
+          description: Cari nama, email, atau nomor telepon
+          schema:
+            type: string
+            example: ahmad
+        - name: sort
+          in: query
+          description: Pengurutan data pengguna
+          schema:
+            type: string
+            enum: [name, -name, email, created_at, -created_at]
+            default: -created_at
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
+      responses:
+        "200":
+          description: Daftar pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/users/{id}/verify:
+    patch:
+      tags: [Admin - Users]
+      summary: Verifikasi aktivasi akun pengelola venue
+      description: Mengubah status akun mitra pengelola dari `pending` menjadi `active` agar dapat mulai mengoperasikan venue.
+      operationId: verifyPartnerUser
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Akun pengelola berhasil diverifikasi dan diaktifkan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, message, data]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Akun pengelola berhasil diverifikasi menjadi active.
+                  data:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+# ==========================================
+# REUSABLE COMPONENTS
+# ==========================================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Masukkan access token hasil login dalam format `Bearer <token>`
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Nomor halaman pagination (dimulai dari 1)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+
+    PerPage:
+      name: per_page
+      in: query
+      description: Jumlah data per halaman (maksimum 100 untuk mencegah konsumsi sumber daya berlebih)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 15
+        example: 15
+
+    VenueId:
+      name: id
+      in: path
+      required: true
+      description: ID numerik unik venue olahraga
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+
+    CourtId:
+      name: id
+      in: path
+      required: true
+      description: ID numerik unik unit lapangan fisik
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+
+    BookingId:
+      name: id
+      in: path
+      required: true
+      description: ID numerik unik transaksi booking
+      schema:
+        type: integer
+        minimum: 1
+        example: 45
+
+    PriceId:
+      name: id
+      in: path
+      required: true
+      description: ID numerik unik aturan tarif sewa
+      schema:
+        type: integer
+        minimum: 1
+        example: 3
+
+    BlockId:
+      name: id
+      in: path
+      required: true
+      description: ID numerik unik pemblokiran jadwal lapangan
+      schema:
+        type: integer
+        minimum: 1
+        example: 2
+
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: ID numerik unik akun pengguna
+      schema:
+        type: integer
+        minimum: 1
+        example: 7
+
+  responses:
+    BadRequest:
+      description: Sintaks permintaan tidak valid atau format JSON salah (RFC 9110 400)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            message: Sintaks payload JSON tidak valid atau malformed.
+            code: BAD_REQUEST
+
+    Unauthorized:
+      description: Kredensial tidak ada, token tidak valid, atau telah kadaluarsa (RFC 9110 401)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            message: Sesi tidak valid atau token otorisasi tidak ditemukan. Silakan login kembali.
+            code: UNAUTHENTICATED
+
+    Forbidden:
+      description: Akses ditolak karena role pengguna tidak memiliki izin atas resource ini (RFC 9110 403)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            message: Anda tidak memiliki wewenang untuk mengakses resource ini.
+            code: FORBIDDEN_ACCESS
+
+    NotFound:
+      description: Resource dengan ID yang diminta tidak ditemukan dalam database (RFC 9110 404)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            message: Resource yang diminta tidak ditemukan di sistem.
+            code: RESOURCE_NOT_FOUND
+
+    Conflict:
+      description: Terjadi bentrok kondisi konkurensi data atau pelanggaran aturan state bisnis (RFC 9110 409)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            message: Satu atau lebih slot jadwal yang dipilih sudah dikunci atau terisi oleh pemesan lain.
+            code: SLOT_ALREADY_LOCKED
+
+    ValidationError:
+      description: Validasi input data form request gagal (RFC 9110 422)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+          example:
+            status: error
+            message: Data yang dikirim tidak valid.
+            errors:
+              slots:
+                - Minimal satu slot jam operasional harus dipilih.
+              court_id:
+                - Lapangan yang dipilih tidak aktif atau tidak ditemukan.
+
+  schemas:
+    # ----------------------------------------
+    # GENERIC ENVELOPES & ERRORS
+    # ----------------------------------------
+    Error:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Pesan penjelasan kesalahan operasional
+        code:
+          type: [string, "null"]
+          example: OPERATION_FAILED
+
+    ValidationError:
+      type: object
+      required: [status, message, errors]
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Data yang dikirim tidak valid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+              - Format email tidak valid.
+              - Email sudah terdaftar di sistem.
+
+    PaginationLinks:
+      type: object
+      required: [first, last]
+      properties:
+        first:
+          type: [string, "null"]
+          format: uri
+          example: http://localhost:8000/api/v1/venues?page=1
+        last:
+          type: [string, "null"]
+          format: uri
+          example: http://localhost:8000/api/v1/venues?page=5
+        prev:
+          type: [string, "null"]
+          format: uri
+          example: null
+        next:
+          type: [string, "null"]
+          format: uri
+          example: http://localhost:8000/api/v1/venues?page=2
+
+    PaginationMeta:
+      type: object
+      required: [current_page, per_page, total, last_page]
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        from:
+          type: [integer, "null"]
+          example: 1
+        to:
+          type: [integer, "null"]
+          example: 10
+        total:
+          type: integer
+          example: 48
+        last_page:
+          type: integer
+          example: 5
+
+    # ----------------------------------------
+    # USER & AUTH SCHEMAS
+    # ----------------------------------------
+    User:
+      type: object
+      required: [id, name, email, phone, role, status, created_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: Moh. Kharis Maulana Elhaq
+        email:
+          type: string
+          format: email
+          example: kharis@sportvenue.test
+        phone:
+          type: string
+          example: "081234567890"
+        role:
+          type: string
+          enum: [penyewa, pengelola, admin]
+          example: penyewa
+        status:
+          type: string
+          enum: [active, pending, suspended]
+          example: active
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-10-01T08:00:00+07:00"
+
+    RegisterInput:
+      type: object
+      required: [name, email, phone, password, role]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: Moh. Kharis Maulana Elhaq
+        email:
+          type: string
+          format: email
+          example: kharis@sportvenue.test
+        phone:
+          type: string
+          maxLength: 20
+          example: "081234567890"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          writeOnly: true
+          example: SecretPassword123!
+        role:
+          type: string
+          enum: [penyewa, pengelola]
+          example: penyewa
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: kharis@sportvenue.test
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          example: SecretPassword123!
+
+    AuthResponse:
+      type: object
+      required: [status, token, user]
+      properties:
+        status:
+          type: string
+          example: success
+        token:
+          type: string
+          example: "1|qX8z9P0L2jR4vK6wM8nB7vC5xZ3aS1dF"
+        user:
+          $ref: "#/components/schemas/User"
+
+    UserList:
+      type: object
+      required: [status, data, links, meta]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        links:
+          $ref: "#/components/schemas/PaginationLinks"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    # ----------------------------------------
+    # VENUE SCHEMAS
+    # ----------------------------------------
+    VenueSummary:
+      type: object
+      required: [id, name, city]
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Arena Garuda Futsal
+        city:
+          type: string
+          example: Tegal
+
+    Venue:
+      type: object
+      required: [id, owner_id, name, slug, address, city, phone, dp_percent, cancel_free_hours, cancel_refund_percent, created_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        owner_id:
+          type: integer
+          readOnly: true
+          example: 2
+        name:
+          type: string
+          maxLength: 150
+          example: Arena Garuda Futsal
+        slug:
+          type: string
+          readOnly: true
+          example: arena-garuda-futsal
+        description:
+          type: [string, "null"]
+          example: Gelanggang futsal dan badminton berstandar nasional lantai vinyl profesional.
+        address:
+          type: string
+          example: Jl. Martoloyo No. 12, Panggung
+        city:
+          type: string
+          maxLength: 100
+          example: Tegal
+        phone:
+          type: string
+          maxLength: 20
+          example: "081234567890"
+        dp_percent:
+          type: integer
+          minimum: 10
+          maximum: 100
+          example: 30
+        cancel_free_hours:
+          type: integer
+          minimum: 0
+          example: 24
+        cancel_refund_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 50
+        image_url:
+          type: [string, "null"]
+          format: uri
+          example: https://sportvenue.test/storage/venues/garuda.jpg
+        starting_price:
+          type: [number, "null"]
+          readOnly: true
+          description: Nilai agregasi virtual dari MIN(court_prices.price)
+          example: 120000
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-10-01T08:00:00+07:00"
+
+    VenueInput:
+      type: object
+      required: [name, address, city, phone, dp_percent, cancel_free_hours, cancel_refund_percent]
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          example: Arena Garuda Futsal
+        description:
+          type: [string, "null"]
+          example: Gelanggang futsal berstandar nasional lantai vinyl pro.
+        address:
+          type: string
+          example: Jl. Martoloyo No. 12
+        city:
+          type: string
+          maxLength: 100
+          example: Tegal
+        phone:
+          type: string
+          maxLength: 20
+          example: "081234567890"
+        dp_percent:
+          type: integer
+          minimum: 10
+          maximum: 100
+          example: 30
+        cancel_free_hours:
+          type: integer
+          minimum: 0
+          example: 24
+        cancel_refund_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 50
+        image_url:
+          type: [string, "null"]
+          format: uri
+          example: https://sportvenue.test/storage/venues/garuda.jpg
+
+    VenueList:
+      type: object
+      required: [status, data, links, meta]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Venue"
+        links:
+          $ref: "#/components/schemas/PaginationLinks"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    # ----------------------------------------
+    # COURT & PRICING SCHEMAS
+    # ----------------------------------------
+    CourtSummary:
+      type: object
+      required: [id, name, sport_type]
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Lapangan Futsal A (Vinyl Pro)
+        sport_type:
+          type: string
+          enum: [futsal, badminton, basketball, mini_soccer]
+          example: futsal
+
+    Court:
+      type: object
+      required: [id, venue_id, name, sport_type, is_active, created_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        venue_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          maxLength: 100
+          example: Lapangan Futsal A (Vinyl Pro)
+        sport_type:
+          type: string
+          enum: [futsal, badminton, basketball, mini_soccer]
+          example: futsal
+        is_active:
+          type: boolean
+          example: true
+        venue:
+          $ref: "#/components/schemas/VenueSummary"
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-10-01T08:30:00+07:00"
+
+    CourtInput:
+      type: object
+      required: [venue_id, name, sport_type]
+      properties:
+        venue_id:
+          type: integer
+          minimum: 1
+          example: 1
+        name:
+          type: string
+          maxLength: 100
+          example: Lapangan Futsal A (Vinyl Pro)
+        sport_type:
+          type: string
+          enum: [futsal, badminton, basketball, mini_soccer]
+          example: futsal
+        is_active:
+          type: boolean
+          default: true
+          example: true
+
+    CourtPatchStatusInput:
+      type: object
+      required: [is_active]
+      properties:
+        is_active:
+          type: boolean
+          example: false
+
+    CourtPrice:
+      type: object
+      required: [id, court_id, day_type, start_time, end_time, price, created_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        court_id:
+          type: integer
+          example: 1
+        day_type:
+          type: string
+          enum: [weekday, weekend, all_days]
+          example: weekday
+        start_time:
+          type: string
+          example: "08:00:00"
+        end_time:
+          type: string
+          example: "16:00:00"
+        price:
+          type: number
+          format: float
+          example: 120000.00
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-10-01T09:00:00+07:00"
+
+    CourtPriceInput:
+      type: object
+      required: [court_id, day_type, start_time, end_time, price]
+      properties:
+        court_id:
+          type: integer
+          minimum: 1
+          example: 1
+        day_type:
+          type: string
+          enum: [weekday, weekend, all_days]
+          example: weekday
+        start_time:
+          type: string
+          example: "08:00:00"
+        end_time:
+          type: string
+          example: "16:00:00"
+        price:
+          type: number
+          minimum: 0
+          example: 120000.00
+
+    CourtOperatingHour:
+      type: object
+      required: [id, court_id, day_of_week, open_time, close_time, slot_duration_minutes]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        court_id:
+          type: integer
+          example: 1
+        day_of_week:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: 0 = Minggu, 1 = Senin, ... 6 = Sabtu
+          example: 1
+        open_time:
+          type: string
+          example: "08:00:00"
+        close_time:
+          type: string
+          example: "23:00:00"
+        slot_duration_minutes:
+          type: integer
+          example: 60
+
+    ScheduleBlock:
+      type: object
+      required: [id, court_id, start_at, end_at, reason, created_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        court_id:
+          type: integer
+          example: 1
+        start_at:
+          type: string
+          format: date-time
+          example: "2026-10-28T08:00:00+07:00"
+        end_at:
+          type: string
+          format: date-time
+          example: "2026-10-28T14:00:00+07:00"
+        reason:
+          type: string
+          example: Perawatan rutin pelapisan vinyl lapangan
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-10-21T10:00:00+07:00"
+
+    ScheduleBlockInput:
+      type: object
+      required: [court_id, start_at, end_at, reason]
+      properties:
+        court_id:
+          type: integer
+          minimum: 1
+          example: 1
+        start_at:
+          type: string
+          format: date-time
+          example: "2026-10-28T08:00:00+07:00"
+        end_at:
+          type: string
+          format: date-time
+          example: "2026-10-28T14:00:00+07:00"
+        reason:
+          type: string
+          maxLength: 255
+          example: Perawatan rutin pelapisan vinyl lapangan
+
+    # ----------------------------------------
+    # AVAILABILITY SCHEMAS
+    # ----------------------------------------
+    TimeSlot:
+      type: object
+      required: [slot_start, slot_end, status, price]
+      properties:
+        slot_start:
+          type: string
+          example: "09:00"
+        slot_end:
+          type: string
+          example: "10:00"
+        status:
+          type: string
+          enum: [AVAILABLE, HOLD, BOOKED, BLOCKED]
+          example: AVAILABLE
+        price:
+          type: number
+          example: 120000.00
+
+    CourtAvailability:
+      type: object
+      required: [status, court_id, play_date, slots]
+      properties:
+        status:
+          type: string
+          example: success
+        court_id:
+          type: integer
+          example: 1
+        play_date:
+          type: string
+          format: date
+          example: "2026-10-25"
+        court_name:
+          type: string
+          example: Lapangan Futsal A (Vinyl Pro)
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimeSlot"
+
+    # ----------------------------------------
+    # BOOKING & PAYMENT SCHEMAS
+    # ----------------------------------------
+    BookingSlotItem:
+      type: object
+      required: [slot_start, slot_end, price]
+      properties:
+        slot_start:
+          type: string
+          format: date-time
+          example: "2026-10-25T09:00:00+07:00"
+        slot_end:
+          type: string
+          format: date-time
+          example: "2026-10-25T10:00:00+07:00"
+        price:
+          type: number
+          example: 120000.00
+
+    Booking:
+      type: object
+      required: [id, code, user_id, court_id, total_price, dp_amount, status, expires_at, created_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 45
+        code:
+          type: string
+          readOnly: true
+          example: BK-20261021-9988A
+        user_id:
+          type: integer
+          readOnly: true
+          example: 1
+        court_id:
+          type: integer
+          example: 1
+        court:
+          $ref: "#/components/schemas/CourtSummary"
+        total_price:
+          type: number
+          format: float
+          example: 240000.00
+        dp_amount:
+          type: number
+          format: float
+          example: 72000.00
+        status:
+          type: string
+          enum: [PENDING_PAYMENT, CONFIRMED, COMPLETED, CANCELLED, EXPIRED, NO_SHOW]
+          example: PENDING_PAYMENT
+        expires_at:
+          type: string
+          format: date-time
+          example: "2026-10-21T19:25:00+07:00"
+        cancelled_at:
+          type: [string, "null"]
+          format: date-time
+          example: null
+        refund_amount:
+          type: [number, "null"]
+          example: null
+        cancellation_reason:
+          type: [string, "null"]
+          example: null
+        notes:
+          type: [string, "null"]
+          example: Latihan tanding komunitas futsal
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookingSlotItem"
+        payments:
+          type: array
+          description: Riwayat pembayaran uang muka (DP) atau pelunasan sewa
+          items:
+            $ref: "#/components/schemas/Payment"
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-10-21T19:10:00+07:00"
+
+    BookingInput:
+      type: object
+      required: [court_id, slots]
+      properties:
+        court_id:
+          type: integer
+          minimum: 1
+          example: 1
+        slots:
+          type: array
+          description: Daftar waktu awal slot sewa yang dipesan
+          items:
+            type: string
+            example: "2026-10-25 09:00:00"
+          example:
+            - "2026-10-25 09:00:00"
+            - "2026-10-25 10:00:00"
+        notes:
+          type: [string, "null"]
+          maxLength: 255
+          example: Latihan tanding komunitas futsal
+
+    BookingCancellationInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          maxLength: 255
+          example: Jadwal anggota tim mendadak berhalangan karena tugas dinas.
+
+    BookingStatusUpdateInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [COMPLETED, NO_SHOW]
+          example: COMPLETED
+
+    BookingList:
+      type: object
+      required: [status, data, links, meta]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Booking"
+        links:
+          $ref: "#/components/schemas/PaginationLinks"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    Payment:
+      type: object
+      required: [id, booking_id, order_id, type, amount, status, created_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        booking_id:
+          type: integer
+          example: 45
+        order_id:
+          type: string
+          example: ORDER-BK-20261021-9988A-DP
+        type:
+          type: string
+          enum: [DP, FULL]
+          example: DP
+        amount:
+          type: number
+          example: 72000.00
+        status:
+          type: string
+          enum: [PENDING, SETTLEMENT, EXPIRE, CANCEL]
+          example: SETTLEMENT
+        payment_type:
+          type: [string, "null"]
+          example: qris
+        paid_at:
+          type: [string, "null"]
+          format: date-time
+          example: "2026-10-21T19:15:30+07:00"
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-10-21T19:10:05+07:00"
+
+    PaymentInitResponse:
+      type: object
+      required: [status, snap_token, redirect_url, order_id, amount]
+      properties:
+        status:
+          type: string
+          example: success
+        snap_token:
+          type: string
+          example: "083c27be-6831-4ce8-8b96-b6f13e7102e1"
+        redirect_url:
+          type: string
+          format: uri
+          example: https://app.sandbox.midtrans.com/snap/v2/vtweb/083c27be-6831-4ce8-8b96-b6f13e7102e1
+        order_id:
+          type: string
+          example: ORDER-BK-20261021-9988A-DP
+        amount:
+          type: number
+          example: 72000.00
+
+    MidtransWebhookPayload:
+      type: object
+      required: [order_id, transaction_status, status_code, gross_amount, signature_key]
+      properties:
+        order_id:
+          type: string
+          example: ORDER-BK-20261021-9988A-DP
+        transaction_status:
+          type: string
+          enum: [settlement, capture, pending, deny, expire, cancel]
+          example: settlement
+        status_code:
+          type: string
+          example: "200"
+        gross_amount:
+          type: string
+          example: "72000.00"
+        payment_type:
+          type: string
+          example: qris
+        signature_key:
+          type: string
+          example: e15e8b3e8c9735d1db977824...
+        transaction_time:
+          type: string
+          example: "2026-10-21 19:15:20"

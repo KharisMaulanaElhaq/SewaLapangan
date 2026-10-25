@@ -1,0 +1,6 @@
+apis:
+  sportvenue@v1:
+    root: ./docs/openapi.yaml
+
+rules:
+  no-server-example.com: off
