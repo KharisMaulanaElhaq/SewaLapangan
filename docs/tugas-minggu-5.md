@@ -117,6 +117,38 @@ Berikut adalah evaluasi penilaian kontrak API SportVenue berdasarkan 8 butir sta
 
 ---
 
+### 22.5 Panduan & Template Bukti Screenshot Percobaan di Swagger Editor / Swagger UI
+
+Bagian ini disediakan khusus untuk melampirkan bukti pengujian mandiri (*Try it out*) pada Swagger Editor atau Swagger UI lokal:
+
+#### A. Panduan Pengujian Mandiri oleh Mahasiswa:
+1. **Membuka Kontrak di Swagger:**
+   - **Opsi Online:** Kunjungi [https://editor.swagger.io](https://editor.swagger.io) -> Salin seluruh teks dari file `docs/openapi.yaml` -> Tempelkan (*paste*) ke panel editor Swagger di sisi kiri.
+   - **Opsi Lokal Proyek:** Jalankan web server lokal bawaan PHP di terminal `c:\xampp\htdocs\booking_lapangan`:
+     ```powershell
+     php -S 127.0.0.1:8000 -t docs
+     ```
+     Lalu buka peramban (*browser*) pada alamat: [http://127.0.0.1:8000/swagger.html](http://127.0.0.1:8000/swagger.html).
+2. **Melakukan Percobaan Request (Try It Out):**
+   - **Uji Coba Katalog Publik:** Buka tag **Venues** -> pilih `GET /venues` -> klik tombol **Try it out** -> masukkan parameter `city: Tegal` -> klik tombol biru **Execute** -> amati Server Response `200 OK` dengan daftar JSON venue.
+   - **Uji Coba Fitur Keamanan (Authorize):** Klik tombol gembok hijau **Authorize** di pojok kanan atas Swagger UI -> masukkan token dummy (misal: `1|sampleTokenSanctum123`) -> klik **Authorize** -> **Close**.
+3. **Mengambil & Menempelkan Screenshot:**
+   - Ambil tangkapan layar menggunakan tombol `Win + Shift + S` pada Windows.
+   - Tempelkan (*paste*) gambar tangkapan layar Anda pada area kotak di bawah ini di dalam file Word/PDF laporan tugas:
+
+```
++---------------------------------------------------------------------------------------+
+|              [ AREA TEMPAT MENEMPELKAN GAMBAR SCREENSHOT SWAGGER UI ]                 |
+|                                                                                       |
+|  Petunjuk:                                                                            |
+|  1. Silakan hapus bingkai/teks panduan ini pada dokumen Microsoft Word (.docx).       |
+|  2. Tekan tombol Ctrl + V untuk menempelkan gambar screenshot pengujian Swagger Anda. |
+|  3. Simpan dan ekspor ke PDF sebelum diunggah ke portal LMS kampus.                   |
++---------------------------------------------------------------------------------------+
+```
+
+---
+
 ## 24. Ringkasan Tugas Kelompok Minggu ke-5: OpenAPI v1 (Milestone M2)
 Kontrak OpenAPI v1 ini merupakan cetak biru formal yang menjadi dasar implementasi backend Laravel pada Minggu ke-6 dan dasar pengujian otomatis (*automated contract testing*) pada Minggu ke-10.
 
