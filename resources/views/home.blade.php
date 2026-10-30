@@ -24,7 +24,7 @@
 
             <!-- Search Filter Bar -->
             <div class="mt-8 rounded-2xl border border-white/10 bg-white/10 p-3 sm:p-4 backdrop-blur-xl shadow-2xl">
-                <form action="{{ route('home') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <form action="{{ route('home') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                     <!-- Search Keyword -->
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Cari Venue</label>
@@ -48,11 +48,26 @@
                     <!-- Sport Type Filter -->
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Cabang Olahraga</label>
-                        <select name="sport" class="w-full rounded-xl border border-white/10 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-400 focus:outline-none transition">
+                        @php $selectedSport = request('sport_type', request('sport')); @endphp
+                        <select name="sport_type" class="w-full rounded-xl border border-white/10 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-400 focus:outline-none transition">
                             <option value="">Semua Olahraga</option>
                             @foreach($sports as $sport)
-                                <option value="{{ $sport }}" {{ request('sport') === $sport ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $sport)) }}</option>
+                                <option value="{{ $sport }}" {{ $selectedSport === $sport ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $sport)) }}</option>
                             @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Whitelist Sort Filter -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Urutkan</label>
+                        @php $selectedSort = request('sort', 'name'); @endphp
+                        <select name="sort" class="w-full rounded-xl border border-white/10 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-400 focus:outline-none transition">
+                            <option value="name" {{ $selectedSort === 'name' ? 'selected' : '' }}>Nama (A - Z)</option>
+                            <option value="-name" {{ $selectedSort === '-name' ? 'selected' : '' }}>Nama (Z - A)</option>
+                            <option value="starting_price" {{ $selectedSort === 'starting_price' ? 'selected' : '' }}>Harga Terendah</option>
+                            <option value="-starting_price" {{ $selectedSort === '-starting_price' ? 'selected' : '' }}>Harga Tertinggi</option>
+                            <option value="-created_at" {{ $selectedSort === '-created_at' ? 'selected' : '' }}>Terbaru</option>
+                            <option value="created_at" {{ $selectedSort === 'created_at' ? 'selected' : '' }}>Terlama</option>
                         </select>
                     </div>
 
