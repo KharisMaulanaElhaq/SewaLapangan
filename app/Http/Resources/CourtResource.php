@@ -11,7 +11,7 @@ class CourtResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'venue_id' => $this->venue_id,
+            'venue_id' => (int) $this->venue_id,
             'name' => $this->name,
             'sport_type' => $this->sport_type,
             'is_active' => (bool) $this->is_active,
@@ -19,6 +19,8 @@ class CourtResource extends JsonResource
             'court_prices' => CourtPriceResource::collection($this->whenLoaded('courtPrices')),
             'schedule_blocks' => ScheduleBlockResource::collection($this->whenLoaded('scheduleBlocks')),
             'venue' => new VenueResource($this->whenLoaded('venue')),
+            'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
 }
+
