@@ -134,11 +134,43 @@ class PaymentWebhookTest extends TestCase
         $response = $this->postJson('/api/v1/payments/webhook/midtrans', $payload);
 
         $response->assertStatus(401);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Invalid signature key hash.',
+            'code' => 'INVALID_WEBHOOK_SIGNATURE',
+        ]);
 
         $this->assertDatabaseHas('webhook_logs', [
             'order_id' => $this->payment->order_id,
             'signature_valid' => false,
             'status' => 'rejected',
+        ]);
+    }
+
+    /**
+     * Test webhook for nonexistent payment returns HTTP 400 with PAYMENT_NOT_FOUND code.
+     */
+    public function test_webhook_payment_not_found_returns_400(): void
+    {
+        $orderId = 'PAY-NONEXISTENT-999';
+        $statusCode = '200';
+        $grossAmount = '50000.00';
+        $signature = hash('sha512', $orderId . $statusCode . $grossAmount . $this->serverKey);
+
+        $payload = [
+            'order_id' => $orderId,
+            'status_code' => $statusCode,
+            'gross_amount' => $grossAmount,
+            'signature_key' => $signature,
+            'transaction_status' => 'settlement',
+        ];
+
+        $response = $this->postJson('/api/v1/payments/webhook/midtrans', $payload);
+
+        $response->assertStatus(400);
+        $response->assertJson([
+            'status' => 'error',
+            'code' => 'PAYMENT_NOT_FOUND',
         ]);
     }
 

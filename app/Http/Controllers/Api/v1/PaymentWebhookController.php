@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Exceptions\InvalidWebhookSignatureException;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Services\MidtransService;
@@ -30,13 +31,20 @@ class PaymentWebhookController extends Controller
                 'status' => 'success',
                 'message' => $result['message'],
             ], 200);
+        } catch (InvalidWebhookSignatureException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid signature key hash.',
+                'code' => 'INVALID_WEBHOOK_SIGNATURE',
+            ], 401);
         } catch (Exception $e) {
-            $statusCode = ($e->getMessage() === 'Invalid signature key.') ? 401 : 400;
+            $code = str_contains($e->getMessage(), 'Payment not found') ? 'PAYMENT_NOT_FOUND' : 'WEBHOOK_PROCESSING_ERROR';
 
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
-            ], $statusCode);
+                'code' => $code,
+            ], 400);
         }
     }
 
@@ -80,10 +88,19 @@ class PaymentWebhookController extends Controller
                 'message' => 'Simulasi pembayaran sandbox berhasil diproses.',
                 'data' => $result,
             ]);
+        } catch (InvalidWebhookSignatureException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid signature key hash.',
+                'code' => 'INVALID_WEBHOOK_SIGNATURE',
+            ], 401);
         } catch (Exception $e) {
+            $code = str_contains($e->getMessage(), 'Payment not found') ? 'PAYMENT_NOT_FOUND' : 'WEBHOOK_PROCESSING_ERROR';
+
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
+                'code' => $code,
             ], 400);
         }
     }

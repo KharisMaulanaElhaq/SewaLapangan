@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\InvalidWebhookSignatureException;
 use App\Exceptions\PaymentNotAllowedException;
 use App\Models\Booking;
 use App\Models\Payment;
@@ -160,17 +161,17 @@ class MidtransService
 
         if (!$isSignatureValid) {
             $webhookLog->update([
-                'status' => 'rejected',
+                'status' => WebhookLog::STATUS_REJECTED,
                 'error_message' => 'Invalid webhook signature key.',
             ]);
-            throw new Exception("Invalid signature key.");
+            throw new InvalidWebhookSignatureException('Invalid signature key hash.');
         }
 
         // Find payment
         $payment = Payment::where('order_id', $orderId)->first();
         if (!$payment) {
             $webhookLog->update([
-                'status' => 'error',
+                'status' => WebhookLog::STATUS_ERROR,
                 'error_message' => "Payment with order_id {$orderId} not found.",
             ]);
             throw new Exception("Payment not found for order_id: {$orderId}");
@@ -181,7 +182,7 @@ class MidtransService
         // Idempotency: If this payment is already settled, do not repeat side effects
         if ($payment->status === Payment::STATUS_SETTLEMENT && in_array($transactionStatus, ['settlement', 'capture'])) {
             $webhookLog->update([
-                'status' => 'duplicate_ignored',
+                'status' => WebhookLog::STATUS_DUPLICATE_IGNORED,
                 'processed_at' => Carbon::now(),
             ]);
             return [
@@ -243,7 +244,7 @@ class MidtransService
             }
 
             $webhookLog->update([
-                'status' => 'processed',
+                'status' => WebhookLog::STATUS_PROCESSED,
                 'processed_at' => Carbon::now(),
             ]);
         });
@@ -252,6 +253,82 @@ class MidtransService
             'status' => 'success',
             'message' => 'Webhook successfully processed.',
             'payment' => $payment->fresh(),
+        ];
+    }
+
+    /**
+     * Get financial and webhook audit summary.
+     * If $courtIds is provided, restrict payment metrics to bookings on those courts.
+     */
+    public function getFinancialSummary(?array $courtIds = null): array
+    {
+        $paymentsQuery = Payment::query();
+        $webhookQuery = WebhookLog::query();
+
+        if ($courtIds !== null) {
+            $paymentsQuery->whereHas('booking', function ($q) use ($courtIds) {
+                $q->whereIn('court_id', $courtIds);
+            });
+
+            $orderIds = (clone $paymentsQuery)->pluck('order_id')->filter()->values();
+            $webhookQuery->whereIn('order_id', $orderIds);
+        }
+
+        $totalDpRevenue = (float) (clone $paymentsQuery)
+            ->where('status', Payment::STATUS_SETTLEMENT)
+            ->where('type', Payment::TYPE_DP)
+            ->sum('amount');
+
+        $totalRevenue = (float) (clone $paymentsQuery)
+            ->where('status', Payment::STATUS_SETTLEMENT)
+            ->sum('amount');
+
+        $settlementCount = (int) (clone $paymentsQuery)
+            ->where('status', Payment::STATUS_SETTLEMENT)
+            ->count();
+
+        $pendingCount = (int) (clone $paymentsQuery)
+            ->where('status', Payment::STATUS_PENDING)
+            ->count();
+
+        $expiredCount = (int) (clone $paymentsQuery)
+            ->where('status', Payment::STATUS_EXPIRE)
+            ->count();
+
+        $cancelCount = (int) (clone $paymentsQuery)
+            ->where('status', Payment::STATUS_CANCEL)
+            ->count();
+
+        $refundCount = (int) (clone $paymentsQuery)
+            ->where('status', Payment::STATUS_REFUND)
+            ->count();
+
+        $webhookTotal = (int) (clone $webhookQuery)->count();
+
+        $webhookRejected = (int) (clone $webhookQuery)
+            ->where('status', WebhookLog::STATUS_REJECTED)
+            ->count();
+
+        $webhookDuplicateIgnored = (int) (clone $webhookQuery)
+            ->where('status', WebhookLog::STATUS_DUPLICATE_IGNORED)
+            ->count();
+
+        $webhookError = (int) (clone $webhookQuery)
+            ->where('status', WebhookLog::STATUS_ERROR)
+            ->count();
+
+        return [
+            'total_dp_revenue' => $totalDpRevenue,
+            'total_revenue' => $totalRevenue,
+            'settlement_count' => $settlementCount,
+            'pending_count' => $pendingCount,
+            'expired_count' => $expiredCount,
+            'cancel_count' => $cancelCount,
+            'refund_count' => $refundCount,
+            'webhook_total' => $webhookTotal,
+            'webhook_rejected' => $webhookRejected,
+            'webhook_duplicate_ignored' => $webhookDuplicateIgnored,
+            'webhook_error' => $webhookError,
         ];
     }
 }
