@@ -155,9 +155,19 @@ class BookingController extends Controller
 
             return response()->json([
                 'status' => 'success',
+                'snap_token' => $payment->snap_token,
+                'redirect_url' => $payment->snap_redirect_url,
+                'order_id' => $payment->order_id,
+                'amount' => (float) $payment->amount,
                 'message' => 'Token transaksi Midtrans Snap berhasil dibuat.',
                 'data' => new PaymentResource($payment),
-            ]);
+            ], 201);
+        } catch (\App\Exceptions\PaymentNotAllowedException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage() ?: 'Transaksi sudah dibayar atau telah melewati batas holding pembayaran.',
+                'code' => 'PAYMENT_NOT_ALLOWED',
+            ], 409);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',

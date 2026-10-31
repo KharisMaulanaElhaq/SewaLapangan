@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\PaymentNotAllowedException;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\WebhookLog;
@@ -38,11 +39,11 @@ class MidtransService
     public function createSnapTransaction(Booking $booking, string $type = 'DP'): Payment
     {
         if ($booking->status !== Booking::STATUS_PENDING_PAYMENT) {
-            throw new Exception("Hanya booking berstatus PENDING_PAYMENT yang dapat dibuatkan transaksi pembayaran.");
+            throw new PaymentNotAllowedException("Transaksi sudah dibayar atau telah melewati batas holding pembayaran.");
         }
 
         if (Carbon::now()->gte($booking->expires_at)) {
-            throw new Exception("Batas waktu pembayaran untuk booking ini telah kedaluwarsa.");
+            throw new PaymentNotAllowedException("Transaksi sudah dibayar atau telah melewati batas holding pembayaran.");
         }
 
         $booking->loadMissing(['user', 'court.venue']);
