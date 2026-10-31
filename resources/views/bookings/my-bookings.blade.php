@@ -17,22 +17,63 @@
 
     <!-- Filter Status Tabs -->
     <div class="flex flex-wrap gap-2 text-xs font-semibold">
-        <a href="{{ route('my.bookings') }}" class="rounded-xl px-3.5 py-2 border transition {{ !request('status') ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
+        <a href="{{ route('my.bookings', request()->except(['status', 'page'])) }}" class="rounded-xl px-3.5 py-2 border transition {{ !request('status') ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
             Semua ({{ \App\Models\Booking::where('user_id', Auth::id())->count() }})
         </a>
-        <a href="{{ route('my.bookings', ['status' => 'PENDING_PAYMENT']) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'PENDING_PAYMENT' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
+        <a href="{{ route('my.bookings', array_merge(request()->except('page'), ['status' => 'PENDING_PAYMENT'])) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'PENDING_PAYMENT' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
             Menunggu Bayar ({{ \App\Models\Booking::where('user_id', Auth::id())->where('status', 'PENDING_PAYMENT')->count() }})
         </a>
-        <a href="{{ route('my.bookings', ['status' => 'CONFIRMED']) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'CONFIRMED' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
+        <a href="{{ route('my.bookings', array_merge(request()->except('page'), ['status' => 'CONFIRMED'])) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'CONFIRMED' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
             Terkonfirmasi ({{ \App\Models\Booking::where('user_id', Auth::id())->where('status', 'CONFIRMED')->count() }})
         </a>
-        <a href="{{ route('my.bookings', ['status' => 'COMPLETED']) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'COMPLETED' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
+        <a href="{{ route('my.bookings', array_merge(request()->except('page'), ['status' => 'COMPLETED'])) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'COMPLETED' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
             Selesai ({{ \App\Models\Booking::where('user_id', Auth::id())->where('status', 'COMPLETED')->count() }})
         </a>
-        <a href="{{ route('my.bookings', ['status' => 'CANCELLED']) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'CANCELLED' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
+        <a href="{{ route('my.bookings', array_merge(request()->except('page'), ['status' => 'CANCELLED'])) }}" class="rounded-xl px-3.5 py-2 border transition {{ request('status') === 'CANCELLED' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
             Dibatalkan ({{ \App\Models\Booking::where('user_id', Auth::id())->where('status', 'CANCELLED')->count() }})
         </a>
     </div>
+
+    <!-- Search Code, Date Range Filter & Sort Bar -->
+    <form method="GET" action="{{ route('my.bookings') }}" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+        @if(request('status'))
+            <input type="hidden" name="status" value="{{ request('status') }}">
+        @endif
+        <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Cari Kode Booking</label>
+            <input type="text" name="q" value="{{ request('q') }}" placeholder="Contoh: BK-2026..."
+                class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Dari Tanggal</label>
+            <input type="date" name="date_from" value="{{ request('date_from') }}"
+                class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Sampai Tanggal</label>
+            <input type="date" name="date_to" value="{{ request('date_to') }}"
+                class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Urutkan</label>
+            <select name="sort" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+                <option value="-created_at" {{ request('sort', '-created_at') === '-created_at' ? 'selected' : '' }}>Terbaru Dibuat</option>
+                <option value="created_at" {{ request('sort') === 'created_at' ? 'selected' : '' }}>Terlama Dibuat</option>
+                <option value="-total_price" {{ request('sort') === '-total_price' ? 'selected' : '' }}>Total Harga Tertinggi</option>
+                <option value="total_price" {{ request('sort') === 'total_price' ? 'selected' : '' }}>Total Harga Terendah</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition">
+                Terapkan Filter
+            </button>
+            @if(request()->hasAny(['q', 'date_from', 'date_to', 'sort', 'status']))
+                <a href="{{ route('my.bookings') }}" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+                    Reset
+                </a>
+            @endif
+        </div>
+    </form>
 
     @if($bookings->isEmpty())
         <div class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center my-6">
@@ -101,7 +142,15 @@
                             <span class="text-[10px] text-slate-500 block">Total Sewa: Rp {{ number_format($b->total_price, 0, ',', '.') }}</span>
                         </div>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{{ \Illuminate\Support\Facades\Route::has('booking.invoice') ? route('booking.invoice', $b->id) : route('booking.checkout', ['id' => $b->id, 'view' => 'invoice']) }}"
+                                class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                                E-Ticket / Invoice
+                            </a>
+
                             @if($b->isPendingPayment())
                                 <a href="{{ route('booking.checkout', $b->id) }}" class="rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition">
                                     Bayar DP Sekarang &rarr;

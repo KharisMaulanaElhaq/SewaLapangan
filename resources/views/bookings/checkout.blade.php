@@ -176,7 +176,14 @@
                         <p class="text-xs text-emerald-800 max-w-sm mx-auto">
                             Slot lapangan Anda telah terkonfirmasi. Tunjukkan kode booking <strong>{{ $booking->code }}</strong> kepada pengelola venue saat hadir.
                         </p>
-                        <div class="pt-2 flex justify-center gap-3">
+                        <div class="pt-2 flex flex-wrap justify-center gap-3">
+                            <a href="{{ \Illuminate\Support\Facades\Route::has('booking.invoice') ? route('booking.invoice', $booking->id) : route('booking.checkout', ['id' => $booking->id, 'view' => 'invoice']) }}"
+                                class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                                Cetak E-Ticket / Invoice
+                            </a>
                             <a href="{{ route('my.bookings') }}" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 transition">
                                 Lihat Booking Saya
                             </a>
