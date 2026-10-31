@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -49,7 +51,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'is_pending_approval' => ($status === 'pending'),
             ],
-        ], 200);
+        ], 201, ['Location' => '/api/v1/me']);
     }
 
     /**
@@ -103,15 +105,37 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout and revoke tokens.
+     * Update profile of authenticated user (name, phone, & password).
      */
-    public function logout(Request $request): JsonResponse
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
-        $request->user()->currentAccessToken()?->delete();
+        $user = $request->user();
+
+        $data = [
+            'name' => $request->validated('name'),
+            'phone' => $request->validated('phone'),
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Logout berhasil. Token telah dicabut.',
+            'message' => 'Profil berhasil diperbarui.',
+            'data' => new UserResource($user->fresh()),
         ]);
+    }
+
+    /**
+     * Logout and revoke tokens.
+     */
+    public function logout(Request $request): Response
+    {
+        $request->user()->currentAccessToken()?->delete();
+
+        return response()->noContent();
     }
 }

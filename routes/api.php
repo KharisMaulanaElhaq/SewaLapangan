@@ -25,8 +25,16 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware('auth:sanctum')->group(function () {
             Route::get('me', [AuthController::class, 'me']);
+            Route::match(['put', 'patch'], 'me', [AuthController::class, 'updateProfile']);
+            Route::match(['put', 'patch'], 'profile', [AuthController::class, 'updateProfile']);
             Route::post('logout', [AuthController::class, 'logout']);
         });
+    });
+
+    // --- Singleton /me (OpenAPI v1 standard) ---
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('me', [AuthController::class, 'me']);
+        Route::match(['put', 'patch'], 'me', [AuthController::class, 'updateProfile']);
     });
 
     // --- Public Discovery & Availability (Supports GET and POST with JSON Body) ---
