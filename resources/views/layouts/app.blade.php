@@ -141,6 +141,8 @@
                                 <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Admin Platform</a>
                             @endif
 
+                            <a href="{{ route('profile') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Pengaturan Profil</a>
+
                             <div class="border-t border-slate-100 pt-1">
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf

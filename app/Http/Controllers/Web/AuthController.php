@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -100,5 +101,37 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home')->with('success', 'Anda telah berhasil logout.');
+    }
+
+    /**
+     * Show the user profile settings page.
+     */
+    public function showProfile(): View
+    {
+        return view('auth.profile', [
+            'user' => Auth::user(),
+        ]);
+    }
+
+    /**
+     * Update user profile information (name, phone, password).
+     */
+    public function updateProfile(UpdateProfileRequest $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $updateData = [
+            'name' => $request->validated('name'),
+            'phone' => $request->validated('phone'),
+        ];
+
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($updateData);
+
+        return back()->with('success', 'Profil Anda berhasil diperbarui!');
     }
 }

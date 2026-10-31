@@ -32,6 +32,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Customer / Authenticated Bookings
 Route::middleware('auth')->group(function () {
+    // User Profile Management
+    Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
+    Route::put('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
+
     Route::post('/venues/book', [VenueController::class, 'book'])->name('venues.book');
     Route::get('/booking/{id}', [BookingController::class, 'checkout'])->name('booking.checkout');
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('my.bookings');
