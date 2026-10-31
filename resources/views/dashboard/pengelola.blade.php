@@ -124,26 +124,35 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($venue->courts as $court)
                                 <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
-                                    <div class="space-y-2">
+                                    <div class="space-y-3">
+                                        <!-- Court Photo Banner -->
+                                        <div class="relative h-36 w-full overflow-hidden rounded-xl bg-slate-100 shadow-inner">
+                                            <img src="{{ $court->primary_image_url }}" alt="{{ $court->name }}"
+                                                class="h-full w-full object-cover transition-transform duration-300 hover:scale-105">
+                                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent"></div>
+                                            <span class="absolute bottom-2 left-2 rounded-md bg-slate-900/80 backdrop-blur-sm px-2 py-0.5 text-[10px] font-bold uppercase text-white font-mono">
+                                                {{ strtoupper(str_replace('_', ' ', $court->sport_type)) }}
+                                            </span>
+                                            <span class="absolute top-2 right-2 rounded-full {{ $court->is_active ? 'bg-emerald-600/90 text-white' : 'bg-slate-700/90 text-slate-200' }} px-2.5 py-0.5 text-[10px] font-bold shadow-sm">
+                                                {{ $court->is_active ? 'Aktif' : 'Nonaktif' }}
+                                            </span>
+                                            @if($court->images && count($court->images) > 1)
+                                                <span class="absolute top-2 left-2 rounded-full bg-slate-900/80 text-white px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1">
+                                                    📷 {{ count($court->images) }} Foto
+                                                </span>
+                                            @endif
+                                        </div>
+
                                         <!-- Header Court -->
                                         <div class="flex items-start justify-between gap-2">
                                             <div>
                                                 <h5 class="font-extrabold text-slate-900 text-sm">{{ $court->name }}</h5>
-                                                <span class="inline-block mt-0.5 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700 font-mono">
-                                                    {{ strtoupper(str_replace('_', ' ', $court->sport_type)) }}
+                                                <span class="inline-block mt-0.5 text-xs text-slate-400">
+                                                    Venue: {{ $venue->name }}
                                                 </span>
                                             </div>
-                                            <!-- Status Active Badge -->
-                                            @if($court->is_active)
-                                                <span class="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                                                    Aktif
-                                                </span>
-                                            @else
-                                                <span class="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-500">
-                                                    Nonaktif
-                                                </span>
-                                            @endif
                                         </div>
+
 
                                         <!-- Pricing Rules List -->
                                         <div class="border-t border-slate-100 pt-2 space-y-1.5 text-xs">
@@ -360,17 +369,28 @@
     </div>
 
     <!-- MODAL 1: Tambah Lapangan Baru (FR-05 & FR-06) -->
-    <div x-show="showAddCourtModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div @click.outside="showAddCourtModal = false" class="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+    <div x-show="showAddCourtModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div @click.outside="showAddCourtModal = false" class="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto"
+            x-data="{
+                previewUrls: [],
+                handleFileSelect(event) {
+                    this.previewUrls = [];
+                    const files = event.target.files;
+                    if (!files) return;
+                    for (let i = 0; i < files.length; i++) {
+                        this.previewUrls.push(URL.createObjectURL(files[i]));
+                    }
+                }
+            }">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Tambah Lapangan Baru (FR-05)</h3>
-                    <p class="text-xs text-slate-500">Daftarkan lapangan baru dan tentukan harga sewa dasar.</p>
+                    <p class="text-xs text-slate-500">Daftarkan lapangan baru, unggah foto, dan tentukan harga sewa dasar.</p>
                 </div>
                 <button type="button" @click="showAddCourtModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
             </div>
 
-            <form action="{{ route('pengelola.court.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('pengelola.court.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Venue</label>
@@ -397,6 +417,37 @@
                         <option value="tennis">Tennis</option>
                         <option value="volleyball">Volleyball</option>
                     </select>
+                </div>
+
+                <!-- Foto-foto Lapangan -->
+                <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-800">Foto Lapangan (Bisa Unggah Banyak)</label>
+                        <span class="text-[10px] text-slate-400">JPG, PNG, WebP (Max 5MB)</span>
+                    </div>
+
+                    <input type="file" name="photos[]" multiple accept="image/*" @change="handleFileSelect($event)"
+                        class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+
+                    <!-- Preview Thumbnail Grid -->
+                    <template x-if="previewUrls.length > 0">
+                        <div class="mt-2 space-y-1">
+                            <span class="text-[10px] font-bold text-emerald-800 block">Preview Foto yang Dipilih (<span x-text="previewUrls.length"></span> foto):</span>
+                            <div class="grid grid-cols-4 gap-2 pt-1">
+                                <template x-for="(url, index) in previewUrls" :key="index">
+                                    <div class="relative h-16 w-full rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white">
+                                        <img :src="url" class="h-full w-full object-cover">
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div>
+                        <span class="text-[10px] text-slate-500 block mb-1">Atau masukkan URL Foto Langsung (opsional):</span>
+                        <input type="url" name="image_url" placeholder="https://images.unsplash.com/... (opsional)"
+                            class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-slate-800 focus:outline-none">
+                    </div>
                 </div>
 
                 <div>
@@ -429,6 +480,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- MODAL 2: Atur Harga Slot Khusus (FR-06: Weekday / Weekend / Prime Time) -->
     <div x-show="showPriceModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">

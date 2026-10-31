@@ -56,12 +56,28 @@ class ManageCourtController extends Controller
             ], 403);
         }
 
+        $uploadedImages = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $file) {
+                $path = $file->store('courts', 'public');
+                $uploadedImages[] = '/storage/' . $path;
+            }
+        } elseif ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('courts', 'public');
+            $uploadedImages[] = '/storage/' . $path;
+        }
+
+        $mainImageUrl = !empty($uploadedImages) ? $uploadedImages[0] : $request->input('image_url');
+
         $court = Court::create([
             'venue_id' => $venue->id,
             'name' => $request->name,
             'sport_type' => $request->sport_type,
+            'image_url' => $mainImageUrl,
+            'images' => !empty($uploadedImages) ? $uploadedImages : ($mainImageUrl ? [$mainImageUrl] : null),
             'is_active' => $request->input('is_active', true),
         ]);
+
 
         // Seed default operating hours (Sunday to Saturday 08:00 - 23:00)
         for ($day = 0; $day <= 6; $day++) {

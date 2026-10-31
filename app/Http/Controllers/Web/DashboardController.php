@@ -154,16 +154,35 @@ class DashboardController extends Controller
             'price' => ['required', 'numeric', 'min:10000'],
             'open_time' => ['nullable', 'date_format:H:i'],
             'close_time' => ['nullable', 'date_format:H:i'],
+            'image_url' => ['nullable', 'string', 'max:500'],
+            'photos.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ]);
 
         $venue = Venue::where('owner_id', $user->id)->findOrFail($request->venue_id);
+
+        $uploadedImages = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $file) {
+                $path = $file->store('courts', 'public');
+                $uploadedImages[] = '/storage/' . $path;
+            }
+        } elseif ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('courts', 'public');
+            $uploadedImages[] = '/storage/' . $path;
+        }
+
+        $mainImageUrl = !empty($uploadedImages) ? $uploadedImages[0] : $request->input('image_url');
 
         $court = Court::create([
             'venue_id' => $venue->id,
             'name' => $request->name,
             'sport_type' => $request->sport_type,
+            'image_url' => $mainImageUrl,
+            'images' => !empty($uploadedImages) ? $uploadedImages : ($mainImageUrl ? [$mainImageUrl] : null),
             'is_active' => true,
         ]);
+
 
         $openTime = $request->input('open_time', '08:00') . ':00';
         $closeTime = $request->input('close_time', '23:00') . ':00';

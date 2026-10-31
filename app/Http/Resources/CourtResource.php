@@ -14,7 +14,10 @@ class CourtResource extends JsonResource
             'venue_id' => (int) $this->venue_id,
             'name' => $this->name,
             'sport_type' => $this->sport_type,
+            'image_url' => $this->primary_image_url,
+            'images' => $this->images ?: [$this->primary_image_url],
             'is_active' => (bool) $this->is_active,
+
             'operating_hours' => $this->whenLoaded('operatingHours'),
             'court_prices' => CourtPriceResource::collection($this->whenLoaded('courtPrices')),
             'schedule_blocks' => ScheduleBlockResource::collection($this->whenLoaded('scheduleBlocks')),

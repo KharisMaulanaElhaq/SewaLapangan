@@ -70,6 +70,48 @@
                 </div>
             </div>
 
+            @if($selectedCourt)
+                <!-- Selected Court Photo & Specifications -->
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Visual & Spesifikasi Lapangan</span>
+                            <h4 class="text-base font-extrabold text-slate-900">{{ $selectedCourt->name }}</h4>
+                        </div>
+                        <span class="rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-bold text-emerald-800 uppercase font-mono">
+                            {{ strtoupper(str_replace('_', ' ', $selectedCourt->sport_type)) }}
+                        </span>
+                    </div>
+
+                    <!-- Photo Banner -->
+                    <div class="relative h-48 sm:h-64 w-full overflow-hidden rounded-xl bg-slate-900 shadow-md">
+                        <img src="{{ $selectedCourt->primary_image_url }}" alt="{{ $selectedCourt->name }}"
+                            class="h-full w-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                        <div class="absolute bottom-3 left-4 text-white">
+                            <span class="text-[11px] font-medium text-slate-300">Spesifikasi Unit:</span>
+                            <p class="text-base font-bold text-white">{{ $selectedCourt->name }} • {{ $venue->name }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Gallery Thumbnails if multiple photos -->
+                    @if($selectedCourt->images && count($selectedCourt->images) > 1)
+                        <div class="space-y-1.5 pt-1">
+                            <span class="text-[11px] font-semibold text-slate-500 block">Galeri Foto Lapangan ({{ count($selectedCourt->images) }} Foto):</span>
+                            <div class="flex items-center gap-2.5 overflow-x-auto pb-1">
+                                @foreach($selectedCourt->images as $img)
+                                    <a href="{{ str_starts_with($img, 'http') ? $img : asset($img) }}" target="_blank"
+                                        class="group relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-emerald-500 shadow-sm transition">
+                                        <img src="{{ str_starts_with($img, 'http') ? $img : asset($img) }}" class="h-full w-full object-cover group-hover:scale-105 transition duration-200">
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+
             <!-- Date Selector (Next 7 Days Quick Pills) -->
             <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div class="flex items-center justify-between mb-3">

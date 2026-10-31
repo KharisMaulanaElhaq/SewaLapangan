@@ -15,6 +15,8 @@ class Court extends Model
         'venue_id',
         'name',
         'sport_type',
+        'image_url',
+        'images',
         'is_active',
     ];
 
@@ -22,8 +24,36 @@ class Court extends Model
     {
         return [
             'is_active' => 'boolean',
+            'images' => 'array',
         ];
     }
+
+    /**
+     * Get primary display image URL with sport-specific fallback.
+     */
+    public function getPrimaryImageUrlAttribute(): string
+    {
+        if (!empty($this->image_url)) {
+            return str_starts_with($this->image_url, 'http')
+                ? $this->image_url
+                : asset($this->image_url);
+        }
+
+        if (!empty($this->images) && is_array($this->images) && count($this->images) > 0) {
+            $first = $this->images[0];
+            return str_starts_with($first, 'http') ? $first : asset($first);
+        }
+
+        return match (strtolower($this->sport_type)) {
+            'futsal' => 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
+            'badminton' => 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80',
+            'basketball' => 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=80',
+            'mini_soccer' => 'https://images.unsplash.com/photo-1529900245534-47fbfb57835a?auto=format&fit=crop&w=800&q=80',
+            'tennis' => 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=800&q=80',
+            default => 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
+        };
+    }
+
 
     public function venue(): BelongsTo
     {
