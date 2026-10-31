@@ -12,6 +12,7 @@ class PaymentResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'booking_id' => $this->booking_id,
             'order_id' => $this->order_id,
             'type' => $this->type,
             'amount' => (float) $this->amount,
@@ -20,6 +21,7 @@ class PaymentResource extends JsonResource
             'gateway_ref' => $this->gateway_ref,
             'snap_token' => $this->snap_token,
             'snap_redirect_url' => $this->snap_redirect_url,
+            'redirect_url' => $this->snap_redirect_url,
             'paid_at' => $this->paid_at?->toIso8601String(),
             'paid_at_local' => $this->paid_at ? Carbon::parse($this->paid_at)->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s') : null,
             'created_at' => $this->created_at?->toIso8601String(),
