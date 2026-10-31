@@ -11,14 +11,43 @@ use App\Models\User;
 use App\Models\WebhookLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
     /**
-     * List all users with optional filtering.
+     * Allowed sorting parameters for GET /api/v1/admin/users (OpenAPI v1 whitelist).
+     */
+    private const ALLOWED_USER_SORTS = [
+        'name',
+        '-name',
+        'email',
+        'created_at',
+        '-created_at',
+    ];
+
+    /**
+     * List all users with optional filtering, search, and sorting.
      */
     public function users(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'role' => ['nullable', 'string', 'in:penyewa,pengelola,admin'],
+            'status' => ['nullable', 'string', 'in:active,pending,suspended'],
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', 'string', 'in:' . implode(',', self::ALLOWED_USER_SORTS)],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Parameter filter, pencarian, atau pengurutan pengguna tidak valid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $query = User::query();
 
         if ($request->filled('role')) {
@@ -30,22 +59,47 @@ class AdminController extends Controller
         }
 
         if ($request->filled('q')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->q . '%')
-                  ->orWhere('email', 'like', '%' . $request->q . '%')
-                  ->orWhere('phone', 'like', '%' . $request->q . '%');
+            $keyword = $request->input('q');
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', '%' . $keyword . '%')
+                  ->orWhere('email', 'like', '%' . $keyword . '%')
+                  ->orWhere('phone', 'like', '%' . $keyword . '%');
             });
         }
 
-        $users = $query->latest()->paginate($request->input('per_page', 20));
+        $sort = $request->input('sort', '-created_at');
+        match ($sort) {
+            'name' => $query->orderBy('name', 'asc'),
+            '-name' => $query->orderBy('name', 'desc'),
+            'email' => $query->orderBy('email', 'asc'),
+            'created_at' => $query->orderBy('created_at', 'asc'),
+            '-created_at' => $query->orderBy('created_at', 'desc'),
+            default => $query->orderBy('created_at', 'desc'),
+        };
+
+        $perPage = min((int) $request->input('per_page', 20), 100);
+        if ($perPage < 1) {
+            $perPage = 20;
+        }
+
+        $users = $query->paginate($perPage)->withQueryString();
 
         return response()->json([
             'status' => 'success',
             'data' => UserResource::collection($users),
+            'links' => [
+                'first' => $users->url(1),
+                'last' => $users->url($users->lastPage()),
+                'prev' => $users->previousPageUrl(),
+                'next' => $users->nextPageUrl(),
+            ],
             'meta' => [
                 'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'from' => $users->firstItem(),
+                'to' => $users->lastItem(),
                 'total' => $users->total(),
+                'last_page' => $users->lastPage(),
             ],
         ]);
     }
