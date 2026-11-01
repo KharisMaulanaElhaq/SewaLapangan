@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Venue;
 use App\Models\WebhookLog;
 use App\Services\BookingService;
+use App\Services\MidtransService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,8 @@ use Illuminate\View\View;
 class DashboardController extends Controller
 {
     public function __construct(
-        protected BookingService $bookingService
+        protected BookingService $bookingService,
+        protected MidtransService $midtransService,
     ) {}
 
     /**
@@ -40,9 +42,8 @@ class DashboardController extends Controller
         $courtIds = $venues->pluck('courts')->flatten()->pluck('id');
 
         // Metrics
-        $totalRevenue = Payment::whereHas('booking', function ($q) use ($courtIds) {
-            $q->whereIn('court_id', $courtIds);
-        })->where('status', Payment::STATUS_SETTLEMENT)->sum('amount');
+        $summary = $this->midtransService->getFinancialSummary($courtIds->all());
+        $totalRevenue = $summary['total_dp_revenue'];
 
         $totalBookings = Booking::whereIn('court_id', $courtIds)->count();
         $confirmedBookings = Booking::whereIn('court_id', $courtIds)
@@ -80,6 +81,7 @@ class DashboardController extends Controller
 
         return view('dashboard.pengelola', compact(
             'venues',
+            'summary',
             'totalRevenue',
             'totalBookings',
             'confirmedBookings',
