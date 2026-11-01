@@ -18,6 +18,22 @@ class DocsController extends Controller
     }
 
     /**
+     * Download or view OpenAPI v1 Specification (YAML).
+     */
+    public function openapi(): Response
+    {
+        $path = base_path('docs/openapi.yaml');
+        if (!file_exists($path)) {
+            abort(404, 'Spesifikasi OpenAPI tidak ditemukan.');
+        }
+
+        return response(file_get_contents($path), 200, [
+            'Content-Type' => 'text/yaml; charset=utf-8',
+            'Content-Disposition' => 'inline; filename="openapi-booking-lapangan-v1.yaml"',
+        ]);
+    }
+
+    /**
      * Export downloadable Postman Collection JSON.
      */
     public function postman(): JsonResponse
@@ -32,7 +48,7 @@ class DocsController extends Controller
             ],
             'item' => [
                 [
-                    'name' => 'Authentication',
+                    'name' => '1. Authentication',
                     'item' => [
                         [
                             'name' => 'Register (Penyewa / Pengelola)',
@@ -44,7 +60,7 @@ class DocsController extends Controller
                                     'mode' => 'raw',
                                     'raw' => json_encode([
                                         'name' => 'Budi Penyewa',
-                                        'email' => 'budi@example.com',
+                                        'email' => 'budi.baru@example.com',
                                         'phone' => '08123456789',
                                         'password' => 'password123',
                                         'password_confirmation' => 'password123',
@@ -70,16 +86,64 @@ class DocsController extends Controller
                                 ],
                             ],
                         ],
+                        [
+                            'name' => 'Get Profile (Me)',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/auth/me"],
+                            ],
+                        ],
+                        [
+                            'name' => 'Update Profile',
+                            'request' => [
+                                'method' => 'PUT',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/auth/me"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'name' => 'Budi Penyewa Updated',
+                                        'phone' => '08199999999',
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Logout',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/auth/logout"],
+                            ],
+                        ],
                     ],
                 ],
                 [
-                    'name' => 'Public Discovery & Availability',
+                    'name' => '2. Public Discovery & Availability',
                     'item' => [
                         [
                             'name' => 'Search Venues',
                             'request' => [
                                 'method' => 'GET',
                                 'url' => ['raw' => "{$baseUrl}/venues?city=Jakarta&sport=futsal"],
+                            ],
+                        ],
+                        [
+                            'name' => 'Get Venue Detail',
+                            'request' => [
+                                'method' => 'GET',
+                                'url' => ['raw' => "{$baseUrl}/venues/1"],
                             ],
                         ],
                         [
@@ -92,8 +156,30 @@ class DocsController extends Controller
                     ],
                 ],
                 [
-                    'name' => 'Bookings',
+                    'name' => '3. Bookings',
                     'item' => [
+                        [
+                            'name' => 'Get My Bookings',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/bookings"],
+                            ],
+                        ],
+                        [
+                            'name' => 'Get Booking Detail by ID',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/bookings/1"],
+                            ],
+                        ],
                         [
                             'name' => 'Create Booking (Atomic Lock & Hold 15 Mins)',
                             'request' => [
@@ -118,7 +204,7 @@ class DocsController extends Controller
                             ],
                         ],
                         [
-                            'name' => 'Get Snap Payment Token',
+                            'name' => 'Get Snap Payment Token (Midtrans Pay)',
                             'request' => [
                                 'method' => 'POST',
                                 'header' => [
@@ -129,7 +215,7 @@ class DocsController extends Controller
                             ],
                         ],
                         [
-                            'name' => 'Cancel Booking (Venue Policy Refund)',
+                            'name' => 'Cancel Booking (Snapshot Policy Refund)',
                             'request' => [
                                 'method' => 'POST',
                                 'header' => [
@@ -147,7 +233,155 @@ class DocsController extends Controller
                     ],
                 ],
                 [
-                    'name' => 'Payments & Webhook',
+                    'name' => '4. Pengelola Venue Management',
+                    'item' => [
+                        [
+                            'name' => 'List Owner Venues',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/manage/venues"],
+                            ],
+                        ],
+                        [
+                            'name' => 'Create Venue',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/manage/venues"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'name' => 'Arena Sport Hub Baru',
+                                        'city' => 'Jakarta Selatan',
+                                        'address' => 'Jl. RS Fatmawati No. 15',
+                                        'phone' => '081299998888',
+                                        'dp_percent' => 30,
+                                        'cancel_free_hours' => 24,
+                                        'cancel_refund_percent' => 100,
+                                        'description' => 'Fasilitas futsal vinyl & badminton karpet premium',
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Update Venue',
+                            'request' => [
+                                'method' => 'PUT',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/manage/venues/1"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'name' => 'Champions Sport Arena Jakarta',
+                                        'city' => 'Jakarta Selatan',
+                                        'address' => 'Jl. TB Simatupang No. 88, Cilandak',
+                                        'phone' => '021-7890123',
+                                        'dp_percent' => 35,
+                                        'cancel_free_hours' => 24,
+                                        'cancel_refund_percent' => 100,
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Create Court',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/manage/courts"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'venue_id' => 1,
+                                        'name' => 'Lapangan Badminton 2',
+                                        'sport_type' => 'badminton',
+                                        'is_active' => true,
+                                        'open_time' => '08:00',
+                                        'close_time' => '23:00',
+                                        'price' => 75000,
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Add Tier Price Rule',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/manage/prices"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'court_id' => 1,
+                                        'day_type' => 'weekend',
+                                        'start_time' => '17:00',
+                                        'end_time' => '23:00',
+                                        'price' => 180000,
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Block Court Schedule (Maintenance)',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/manage/blocks"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'court_id' => 1,
+                                        'start_at' => date('Y-m-d 10:00:00'),
+                                        'end_at' => date('Y-m-d 14:00:00'),
+                                        'reason' => 'Perawatan rumput sintetis',
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Update Booking Operational Status (COMPLETED / NO_SHOW)',
+                            'request' => [
+                                'method' => 'PATCH',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/manage/bookings/1/status"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode(['status' => 'COMPLETED'], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => '5. Payments & Webhooks',
                     'item' => [
                         [
                             'name' => 'Midtrans Webhook',
@@ -164,11 +398,66 @@ class DocsController extends Controller
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
-                                        'order_id' => 'PAY-BK-DEMO-DP',
+                                        'order_id' => 'PAY-BK-SEED-DP',
                                         'transaction_status' => 'settlement',
                                         'payment_type' => 'qris',
                                     ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
                                 ],
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => '6. Admin Platform',
+                    'item' => [
+                        [
+                            'name' => 'List Users',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/admin/users?role=pengelola"],
+                            ],
+                        ],
+                        [
+                            'name' => 'Verify Pengelola',
+                            'request' => [
+                                'method' => 'PATCH',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/admin/users/3/verify"],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode(['status' => 'active'], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Transactions Summary',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/admin/transactions"],
+                            ],
+                        ],
+                        [
+                            'name' => 'Webhook Logs',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => ['raw' => "{$baseUrl}/admin/webhook-logs"],
                             ],
                         ],
                     ],

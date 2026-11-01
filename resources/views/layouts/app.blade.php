@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Platform Booking Lapangan Olahraga') — Web Service</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,18 +56,15 @@
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
             <!-- Brand Logo -->
             <div class="flex items-center gap-3">
-                <a href="{{ route('home') }}" class="group flex items-center gap-2.5">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/20 transition-transform group-hover:scale-105">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="9" stroke-width="2"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v18M3 12h18"/>
-                        </svg>
-                    </div>
+                <a href="{{ route('home') }}" class="group flex items-center gap-3">
+                    <img src="{{ asset('images/logo.png') }}"
+                        alt="SportVenue Logo"
+                        class="h-10 w-auto object-contain transition-transform group-hover:scale-105">
                     <div>
                         <div class="flex items-center gap-1.5 font-bold tracking-tight text-slate-900 text-lg">
                             <span>SportVenue</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 font-medium">Platform Booking Lapangan</p>
+                        <p class="text-[11px] text-slate-500 font-medium">Sistem Booking Lapangan</p>
                     </div>
                 </a>
             </div>
@@ -96,6 +94,11 @@
                         </a>
                     @endif
                 @endauth
+
+                <a href="{{ route('docs') }}" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('docs*') ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70' }} transition">
+                    <span class="rounded bg-slate-900 text-[10px] font-bold text-white px-1.5 py-0.5 font-mono">API</span>
+                    <span>Dokumentasi</span>
+                </a>
             </nav>
 
             <!-- User Auth Profile / Buttons -->
@@ -212,6 +215,9 @@
                     <p class="text-slate-400 mt-0.5">Muhamad Djafar Ilyasa (23215028), Moh. Arif Prasetyo (23215043), Lutfi Laeli Nur Afiyah (23215046), Muh. Kharis Maulana Elhaq (23215059)</p>
                 </div>
                 <div class="flex items-center gap-4">
+                    <a href="{{ route('docs') }}" class="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-emerald-700 font-semibold transition">
+                        <span>📖 API Docs</span>
+                    </a>
                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 border border-emerald-200/60">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Laravel 12 & Livewire 3

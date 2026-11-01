@@ -101,7 +101,8 @@ class DatabaseSeeder extends Seeder
                 'dp_percent' => 30,
                 'cancel_free_hours' => 12,
                 'cancel_refund_percent' => 80,
-                'image_url' => 'https://images.unsplash.com/photo-1529900245534-47fbfb57835a?auto=format&fit=crop&w=1200&q=80',
+                'image_url' => 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=1200&q=80',
+
             ]
         );
 

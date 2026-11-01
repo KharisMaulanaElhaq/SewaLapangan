@@ -14,11 +14,12 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Public Discovery
+// Public Discovery & Documentation
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/venues/{id}', [VenueController::class, 'show'])->name('venues.show');
-Route::redirect('/docs', '/')->name('docs');
-Route::redirect('/docs/postman', '/')->name('docs.postman');
+Route::get('/docs', [DocsController::class, 'index'])->name('docs');
+Route::get('/docs/postman', [DocsController::class, 'postman'])->name('docs.postman');
+Route::get('/docs/openapi.yaml', [DocsController::class, 'openapi'])->name('docs.openapi');
 
 // Authentication
 Route::middleware('guest')->group(function () {
@@ -46,6 +47,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [DashboardController::class, 'pengelola'])->name('pengelola.dashboard');
         Route::patch('/bookings/{id}/status', [DashboardController::class, 'updateBookingStatus'])->name('pengelola.booking.status');
         Route::post('/blocks', [DashboardController::class, 'storeBlock'])->name('pengelola.block.store');
+        Route::post('/venues', [DashboardController::class, 'storeVenue'])->name('pengelola.venue.store');
+        Route::put('/venues/{id}', [DashboardController::class, 'updateVenue'])->name('pengelola.venue.update');
+        Route::delete('/venues/{id}', [DashboardController::class, 'destroyVenue'])->name('pengelola.venue.destroy');
         Route::post('/courts', [DashboardController::class, 'storeCourt'])->name('pengelola.court.store');
         Route::put('/courts/{id}', [DashboardController::class, 'updateCourt'])->name('pengelola.court.update');
         Route::delete('/courts/{id}', [DashboardController::class, 'destroyCourt'])->name('pengelola.court.destroy');

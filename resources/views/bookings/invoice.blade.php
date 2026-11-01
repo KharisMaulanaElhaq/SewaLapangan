@@ -67,13 +67,9 @@
         <div class="print-header bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 px-6 py-7 sm:px-10 text-white">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div class="flex items-center gap-4">
-                    <!-- Self-contained SVG Logo so it always renders in Print/PDF even without CSS background graphics -->
+                    <!-- Official Logo -->
                     <div class="flex-shrink-0">
-                        <svg class="h-14 w-14 rounded-2xl shadow-lg" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="56" height="56" rx="14" fill="#059669"/>
-                            <circle cx="28" cy="28" r="14" stroke="#FFFFFF" stroke-width="3"/>
-                            <path d="M28 14V42M14 28H42" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <img src="{{ asset('images/logo.png') }}" alt="SportVenue Logo" class="h-12 w-auto object-contain">
                     </div>
                     <div>
                         <div class="flex items-center gap-2">

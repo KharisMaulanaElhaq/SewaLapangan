@@ -142,6 +142,138 @@ class DashboardController extends Controller
     }
 
     /**
+     * Store new venue owned by the authenticated pengelola.
+     */
+    public function storeVenue(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:100'],
+            'address' => ['required', 'string', 'max:500'],
+            'phone' => ['required', 'string', 'max:20'],
+            'description' => ['nullable', 'string'],
+            'dp_percent' => ['required', 'integer', 'between:10,100'],
+            'cancel_free_hours' => ['required', 'integer', 'min:0'],
+            'cancel_refund_percent' => ['required', 'integer', 'between:0,100'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'image_url' => ['nullable', 'string', 'max:500'],
+        ], [
+            'dp_percent.between' => 'Persentase DP harus berada di antara 10% dan 100%.',
+            'cancel_refund_percent.between' => 'Persentase pengembalian refund harus berada di antara 0% dan 100%.',
+        ]);
+
+        $imageUrl = $request->input('image_url');
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('venues', 'public');
+            $imageUrl = '/storage/' . $path;
+        }
+
+        if (!$imageUrl) {
+            $imageUrl = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80';
+        }
+
+        $baseSlug = Str::slug($request->name);
+        $slug = $baseSlug;
+        $counter = 1;
+        while (Venue::where('slug', $slug)->exists()) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        $venue = Venue::create([
+            'owner_id' => $user->id,
+            'name' => $request->name,
+            'slug' => $slug,
+            'description' => $request->description,
+            'address' => $request->address,
+            'city' => $request->city,
+            'phone' => $request->phone,
+            'dp_percent' => $request->dp_percent,
+            'cancel_free_hours' => $request->cancel_free_hours,
+            'cancel_refund_percent' => $request->cancel_refund_percent,
+            'image_url' => $imageUrl,
+        ]);
+
+        return back()->with('success', "Venue '{$venue->name}' berhasil didaftarkan. Silakan tambahkan unit lapangan untuk venue ini.");
+    }
+
+    /**
+     * Update venue details.
+     */
+    public function updateVenue(Request $request, int $id): RedirectResponse
+    {
+        $user = Auth::user();
+        $venue = Venue::where(function ($q) use ($user) {
+            if (!$user->isAdmin()) {
+                $q->where('owner_id', $user->id);
+            }
+        })->findOrFail($id);
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:100'],
+            'address' => ['required', 'string', 'max:500'],
+            'phone' => ['required', 'string', 'max:20'],
+            'description' => ['nullable', 'string'],
+            'dp_percent' => ['required', 'integer', 'between:10,100'],
+            'cancel_free_hours' => ['required', 'integer', 'min:0'],
+            'cancel_refund_percent' => ['required', 'integer', 'between:0,100'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'image_url' => ['nullable', 'string', 'max:500'],
+        ], [
+            'dp_percent.between' => 'Persentase DP harus berada di antara 10% dan 100%.',
+            'cancel_refund_percent.between' => 'Persentase pengembalian refund harus berada di antara 0% dan 100%.',
+        ]);
+
+        $data = $request->only([
+            'name', 'city', 'address', 'phone', 'description',
+            'dp_percent', 'cancel_free_hours', 'cancel_refund_percent'
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('venues', 'public');
+            $data['image_url'] = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $data['image_url'] = $request->image_url;
+        }
+
+        $venue->update($data);
+
+        return back()->with('success', "Informasi venue '{$venue->name}' berhasil diperbarui.");
+    }
+
+    /**
+     * Delete venue (with active booking protection).
+     */
+    public function destroyVenue(int $id): RedirectResponse
+    {
+        $user = Auth::user();
+        $venue = Venue::where(function ($q) use ($user) {
+            if (!$user->isAdmin()) {
+                $q->where('owner_id', $user->id);
+            }
+        })->findOrFail($id);
+
+        $hasActiveBookings = Booking::whereHas('court', function ($query) use ($venue) {
+            $query->where('venue_id', $venue->id);
+        })->whereIn('status', [
+            Booking::STATUS_PENDING_PAYMENT,
+            Booking::STATUS_CONFIRMED,
+        ])->exists();
+
+        if ($hasActiveBookings) {
+            return back()->with('error', "Venue '{$venue->name}' tidak dapat dihapus karena masih memiliki pemesanan aktif.");
+        }
+
+        $venueName = $venue->name;
+        $venue->delete();
+
+        return back()->with('success', "Venue '{$venueName}' berhasil dihapus.");
+    }
+
+    /**
      * Store new court for a venue.
      */
     public function storeCourt(Request $request): RedirectResponse

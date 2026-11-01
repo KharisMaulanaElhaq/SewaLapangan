@@ -8,8 +8,38 @@
         showBlockModal: false, 
         showAddCourtModal: false,
         showPriceModal: false,
+        showAddVenueModal: false,
+        showEditVenueModal: false,
         selectedCourtId: null,
-        selectedCourtName: ''
+        selectedCourtName: '',
+        selectedVenueId: {{ $venues->first()?->id ?? 'null' }},
+        editVenue: {
+            id: null,
+            name: '',
+            city: '',
+            address: '',
+            phone: '',
+            description: '',
+            dp_percent: 30,
+            cancel_free_hours: 24,
+            cancel_refund_percent: 100,
+            image_url: ''
+        },
+        openEditVenue(venue) {
+            this.editVenue = {
+                id: venue.id,
+                name: venue.name,
+                city: venue.city,
+                address: venue.address,
+                phone: venue.phone,
+                description: venue.description || '',
+                dp_percent: venue.dp_percent,
+                cancel_free_hours: venue.cancel_free_hours,
+                cancel_refund_percent: venue.cancel_refund_percent,
+                image_url: venue.image_url || ''
+            };
+            this.showEditVenueModal = true;
+        }
     }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
@@ -23,13 +53,17 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            <button type="button" @click="showAddVenueModal = true"
+                class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center gap-1.5">
+                <span>🏢 + Daftarkan Venue Baru</span>
+            </button>
             <button type="button" @click="showAddCourtModal = true"
                 class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm shadow-emerald-600/30 hover:bg-emerald-700 transition flex items-center gap-1.5">
-                <span>+ Tambah Lapangan Baru</span>
+                <span>⚽ + Tambah Lapangan</span>
             </button>
             <button type="button" @click="showBlockModal = true"
                 class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition flex items-center gap-1.5">
-                <span>⛔ Blokir Jadwal (Maintenance)</span>
+                <span>⛔ Blokir Jadwal</span>
             </button>
         </div>
     </div>
@@ -81,37 +115,124 @@
         </div>
     </div>
 
-    <!-- SECTION: KELOLA LAPANGAN & HARGA (FR-05 & FR-06) -->
+    <!-- SECTION: KELOLA VENUE & LAPANGAN (FR-04, FR-05 & FR-06) -->
     <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
                 <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-extrabold text-slate-900">Manajemen Lapangan & Aturan Harga</h3>
-                    <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">FR-05 & FR-06</span>
+                    <h3 class="text-lg font-extrabold text-slate-900">Manajemen Venue & Lapangan</h3>
+                    <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">FR-04, FR-05 & FR-06</span>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">Kelola daftar lapangan, status aktif/nonaktif, jam operasional, dan aturan harga (weekday/weekend/prime time).</p>
+                <p class="text-xs text-slate-500 mt-1">Kelola data venue Anda, kebijakan DP & pembatalan, unit lapangan, status operasional, dan tarif sewa.</p>
             </div>
 
-            <button type="button" @click="showAddCourtModal = true"
-                class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition flex items-center gap-1.5 self-start sm:self-auto">
-                <span>+ Tambah Lapangan</span>
-            </button>
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <button type="button" @click="showAddVenueModal = true"
+                    class="rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <span>🏢 + Tambah Venue</span>
+                </button>
+                <button type="button" @click="showAddCourtModal = true"
+                    class="rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition flex items-center gap-1.5">
+                    <span>⚽ + Tambah Lapangan</span>
+                </button>
+            </div>
         </div>
 
         <!-- Venues and their courts -->
         <div class="space-y-8">
+            @if($venues->isEmpty())
+                <div class="rounded-2xl border-2 border-dashed border-slate-200 p-8 sm:p-12 text-center space-y-4 bg-slate-50/50">
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-2xl">
+                        🏢
+                    </div>
+                    <div class="max-w-md mx-auto">
+                        <h4 class="text-base font-bold text-slate-900">Belum Ada Venue Terdaftar</h4>
+                        <p class="text-xs text-slate-500 mt-1">Daftarkan venue olahraga Anda sekarang untuk mulai menambahkan unit lapangan dan menerima booking secara otomatis.</p>
+                    </div>
+                    <button type="button" @click="showAddVenueModal = true"
+                        class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition">
+                        <span>+ Daftarkan Venue Pertama Anda</span>
+                    </button>
+                </div>
+            @endif
+
             @foreach($venues as $venue)
-                <div class="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Venue</span>
-                            <h4 class="text-base font-extrabold text-slate-900">{{ $venue->name }}</h4>
-                            <p class="text-xs text-slate-500">📍 {{ $venue->address }}, {{ $venue->city }} · DP: {{ $venue->dp_percent }}%</p>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 space-y-5">
+                    <!-- Venue Header & Controls -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+                        <div class="flex items-start sm:items-center gap-4">
+                            <!-- Venue Photo Thumbnail -->
+                            <div class="relative h-20 w-28 sm:h-24 sm:w-36 flex-shrink-0 overflow-hidden rounded-xl bg-slate-200 shadow-inner">
+                                <img src="{{ $venue->image_url ?: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80' }}"
+                                    alt="{{ $venue->name }}"
+                                    onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=1200&q=80';"
+                                    class="h-full w-full object-cover">
+                                <span class="absolute bottom-1 right-1 rounded bg-slate-900/85 px-1.5 py-0.5 text-[9px] font-bold text-white font-mono">
+                                    {{ $venue->courts->count() }} Lapangan
+                                </span>
+                            </div>
+
+                            <!-- Venue Details -->
+                            <div class="space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="text-base sm:text-lg font-extrabold text-slate-900">{{ $venue->name }}</h4>
+                                    <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                                        📍 {{ $venue->city }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-600 line-clamp-1">📍 {{ $venue->address }}</p>
+                                <p class="text-xs text-slate-500">
+                                    📞 WhatsApp/Telp: <strong class="text-slate-700 font-mono">{{ $venue->phone }}</strong>
+                                </p>
+
+                                <!-- Policy Pills -->
+                                <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
+                                    <span class="rounded-md bg-white border border-slate-200 px-2 py-0.5 font-medium text-emerald-800">
+                                        ⚡ DP: <strong>{{ $venue->dp_percent }}%</strong>
+                                    </span>
+                                    <span class="rounded-md bg-white border border-slate-200 px-2 py-0.5 font-medium text-slate-700">
+                                        🛡️ Batal Gratis: <strong>H-{{ $venue->cancel_free_hours }} Jam</strong> (Refund {{ $venue->cancel_refund_percent }}%)
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                                {{ $venue->courts->count() }} Lapangan
-                            </span>
+
+                        <!-- Venue Action Buttons -->
+                        <div class="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+                            <a href="{{ route('venues.show', $venue->id) }}" target="_blank"
+                                class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1 shadow-sm"
+                                title="Lihat halaman publik venue">
+                                <span>🔗 Publik</span>
+                            </a>
+                            <button type="button" 
+                                @click="openEditVenue({
+                                    id: {{ $venue->id }},
+                                    name: '{{ addslashes($venue->name) }}',
+                                    city: '{{ addslashes($venue->city) }}',
+                                    address: '{{ addslashes($venue->address) }}',
+                                    phone: '{{ addslashes($venue->phone) }}',
+                                    description: '{{ addslashes($venue->description ?? '') }}',
+                                    dp_percent: {{ $venue->dp_percent }},
+                                    cancel_free_hours: {{ $venue->cancel_free_hours }},
+                                    cancel_refund_percent: {{ $venue->cancel_refund_percent }},
+                                    image_url: '{{ addslashes($venue->image_url ?? '') }}'
+                                })"
+                                class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-50 hover:text-emerald-700 transition flex items-center gap-1 shadow-sm">
+                                <span>⚙️ Edit Venue</span>
+                            </button>
+                            <button type="button" @click="selectedVenueId = {{ $venue->id }}; showAddCourtModal = true;"
+                                class="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition flex items-center gap-1 shadow-sm">
+                                <span>+ Lapangan</span>
+                            </button>
+                            <form action="{{ route('pengelola.venue.destroy', $venue->id) }}" method="POST"
+                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus venue \'{{ addslashes($venue->name) }}\'? Seluruh data lapangan di dalamnya juga akan terhapus.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition shadow-sm"
+                                    title="Hapus venue">
+                                    🗑️ Hapus
+                                </button>
+                            </form>
                         </div>
                     </div>
 
@@ -394,10 +515,12 @@
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Venue</label>
-                    <select name="venue_id" required class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none">
-                        @foreach($venues as $v)
+                    <select name="venue_id" required x-model="selectedVenueId" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none">
+                        @forelse($venues as $v)
                             <option value="{{ $v->id }}">{{ $v->name }} ({{ $v->city }})</option>
-                        @endforeach
+                        @empty
+                            <option value="" disabled selected>-- Belum ada venue terdaftar --</option>
+                        @endforelse
                     </select>
                 </div>
 
@@ -585,6 +708,253 @@
                     </button>
                     <button type="submit" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800">
                         Simpan Blokir Jadwal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Tambah Venue Baru (FR-04) -->
+    <div x-show="showAddVenueModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div @click.outside="showAddVenueModal = false" class="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto"
+            x-data="{
+                bannerPreview: null,
+                handleBannerSelect(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        this.bannerPreview = URL.createObjectURL(file);
+                    }
+                }
+            }">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Daftarkan Venue Olahraga Baru</h3>
+                    <p class="text-xs text-slate-500">Isi data identitas venue, lokasi, kontak WhatsApp, serta aturan DP & pembatalan.</p>
+                </div>
+                <button type="button" @click="showAddVenueModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+            </div>
+
+            <form action="{{ route('pengelola.venue.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+
+                <!-- Nama Venue -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Venue <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" required placeholder="Contoh: Arena Sport Center Jakarta"
+                        class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Kota & No Kontak -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kota / Wilayah <span class="text-rose-500">*</span></label>
+                        <input type="text" name="city" required placeholder="Contoh: Jakarta Selatan"
+                            class="w-full rounded-xl border border-slate-200 p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">No. Kontak / WhatsApp <span class="text-rose-500">*</span></label>
+                        <input type="text" name="phone" required placeholder="Contoh: 081234567890"
+                            class="w-full rounded-xl border border-slate-200 p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Alamat Lengkap -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Alamat Lengkap Venue <span class="text-rose-500">*</span></label>
+                    <textarea name="address" required rows="2" placeholder="Jl. TB Simatupang No. 88, Cilandak..."
+                        class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+
+                <!-- Deskripsi Singkat -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Deskripsi & Fasilitas Venue</label>
+                    <textarea name="description" rows="2" placeholder="Fasilitas parkir luas, kantin, shower air panas, musholla, loker..."
+                        class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+
+                <!-- Aturan Kebijakan DP & Pembatalan (FR-07 & FR-15) -->
+                <div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 space-y-3">
+                    <span class="block text-[11px] font-bold text-emerald-900 uppercase tracking-wider">Kebijakan DP & Pembatalan (PRD FR-07 & FR-15)</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Komitmen DP (%)</label>
+                            <input type="number" name="dp_percent" required min="10" max="100" step="5" value="30"
+                                class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500">
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Min 10%, Max 100%</span>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Batas Batal Bebas (Jam)</label>
+                            <input type="number" name="cancel_free_hours" required min="0" value="24"
+                                class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500">
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Jam sebelum main (H-24)</span>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Refund Pembatalan (%)</label>
+                            <input type="number" name="cancel_refund_percent" required min="0" max="100" step="5" value="100"
+                                class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500">
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">% dana DP yang kembali</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Foto Banner Venue -->
+                <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-800">Foto Banner Venue</label>
+                        <span class="text-[10px] text-slate-400">JPG, PNG, WebP (Max 5MB)</span>
+                    </div>
+
+                    <input type="file" name="photo" accept="image/*" @change="handleBannerSelect($event)"
+                        class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-800 hover:file:bg-slate-200 cursor-pointer">
+
+                    <!-- Live Image Preview -->
+                    <template x-if="bannerPreview">
+                        <div class="mt-2 relative h-36 w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+                            <img :src="bannerPreview" class="h-full w-full object-cover">
+                        </div>
+                    </template>
+
+                    <div>
+                        <span class="text-[10px] text-slate-500 block mb-1">Atau masukkan URL Foto Banner langsung (opsional):</span>
+                        <input type="url" name="image_url" placeholder="https://images.unsplash.com/... (opsional)"
+                            class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showAddVenueModal = false" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                        Batal
+                    </button>
+                    <button type="submit" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 shadow-sm">
+                        Simpan & Daftarkan Venue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: Edit Profil & Kebijakan Venue (FR-04) -->
+    <div x-show="showEditVenueModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div @click.outside="showEditVenueModal = false" class="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto"
+            x-data="{
+                newBannerPreview: null,
+                handleNewBannerSelect(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        this.newBannerPreview = URL.createObjectURL(file);
+                    }
+                }
+            }">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Edit Profil & Kebijakan Venue</h3>
+                    <p class="text-xs text-slate-500">Perbarui informasi venue, kontak, lokasi, atau kebijakan DP dan pembatalan.</p>
+                </div>
+                <button type="button" @click="showEditVenueModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+            </div>
+
+            <form :action="'{{ url('dashboard/pengelola/venues') }}/' + editVenue.id" method="POST" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+                @method('PUT')
+
+                <!-- Nama Venue -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Venue <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" required x-model="editVenue.name"
+                        class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Kota & No Kontak -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kota / Wilayah <span class="text-rose-500">*</span></label>
+                        <input type="text" name="city" required x-model="editVenue.city"
+                            class="w-full rounded-xl border border-slate-200 p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">No. Kontak / WhatsApp <span class="text-rose-500">*</span></label>
+                        <input type="text" name="phone" required x-model="editVenue.phone"
+                            class="w-full rounded-xl border border-slate-200 p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Alamat Lengkap -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Alamat Lengkap Venue <span class="text-rose-500">*</span></label>
+                    <textarea name="address" required rows="2" x-model="editVenue.address"
+                        class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+
+                <!-- Deskripsi Singkat -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Deskripsi & Fasilitas Venue</label>
+                    <textarea name="description" rows="2" x-model="editVenue.description"
+                        class="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+
+                <!-- Aturan Kebijakan DP & Pembatalan (FR-07 & FR-15) -->
+                <div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 space-y-3">
+                    <span class="block text-[11px] font-bold text-emerald-900 uppercase tracking-wider">Kebijakan DP & Pembatalan (PRD FR-07 & FR-15)</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Komitmen DP (%)</label>
+                            <input type="number" name="dp_percent" required min="10" max="100" step="5" x-model="editVenue.dp_percent"
+                                class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500">
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Min 10%, Max 100%</span>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Batas Batal Bebas (Jam)</label>
+                            <input type="number" name="cancel_free_hours" required min="0" x-model="editVenue.cancel_free_hours"
+                                class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500">
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Jam sebelum main (H-24)</span>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Refund Pembatalan (%)</label>
+                            <input type="number" name="cancel_refund_percent" required min="0" max="100" step="5" x-model="editVenue.cancel_refund_percent"
+                                class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500">
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">% dana DP yang kembali</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Foto Banner Venue -->
+                <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-800">Ganti Foto Banner Venue</label>
+                        <span class="text-[10px] text-slate-400">JPG, PNG, WebP (Max 5MB)</span>
+                    </div>
+
+                    <!-- Current Banner Thumbnail -->
+                    <template x-if="editVenue.image_url && !newBannerPreview">
+                        <div class="relative h-28 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                            <img :src="editVenue.image_url" class="h-full w-full object-cover">
+                            <span class="absolute bottom-1 right-2 rounded bg-slate-900/75 px-2 py-0.5 text-[10px] text-white">Foto Banner Saat Ini</span>
+                        </div>
+                    </template>
+
+                    <input type="file" name="photo" accept="image/*" @change="handleNewBannerSelect($event)"
+                        class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-800 hover:file:bg-slate-200 cursor-pointer">
+
+                    <!-- Live Image Preview for New Upload -->
+                    <template x-if="newBannerPreview">
+                        <div class="mt-2 relative h-36 w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+                            <img :src="newBannerPreview" class="h-full w-full object-cover">
+                        </div>
+                    </template>
+
+                    <div>
+                        <span class="text-[10px] text-slate-500 block mb-1">Atau perbarui URL Foto Banner langsung (opsional):</span>
+                        <input type="url" name="image_url" x-model="editVenue.image_url" placeholder="https://images.unsplash.com/... (opsional)"
+                            class="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showEditVenueModal = false" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                        Batal
+                    </button>
+                    <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm">
+                        Simpan Perubahan Venue
                     </button>
                 </div>
             </form>
