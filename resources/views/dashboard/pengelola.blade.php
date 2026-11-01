@@ -69,7 +69,7 @@
     </div>
 
     <!-- Metrics Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex items-center justify-between text-xs text-slate-500">
                 <span class="font-semibold uppercase tracking-wider">Pendapatan DP (Settled)</span>
@@ -78,6 +78,28 @@
             <div class="mt-3">
                 <span class="text-2xl font-black font-mono text-slate-900">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</span>
                 <p class="text-[11px] text-emerald-600 font-medium mt-0.5">Dana DP tervalidasi Midtrans</p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-500">
+                <span class="font-semibold uppercase tracking-wider">Transaksi Settlement</span>
+                <span class="rounded-lg bg-teal-50 p-2 text-teal-600">✅</span>
+            </div>
+            <div class="mt-3">
+                <span class="text-2xl font-black font-mono text-slate-900">{{ $summary['settlement_count'] ?? 0 }}</span>
+                <p class="text-[11px] text-teal-600 font-medium mt-0.5">Pembayaran berhasil</p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-500">
+                <span class="font-semibold uppercase tracking-wider">Transaksi Pending</span>
+                <span class="rounded-lg bg-amber-50 p-2 text-amber-600">⏳</span>
+            </div>
+            <div class="mt-3">
+                <span class="text-2xl font-black font-mono text-slate-900">{{ $summary['pending_count'] ?? 0 }}</span>
+                <p class="text-[11px] text-amber-600 font-medium mt-0.5">Menunggu pembayaran</p>
             </div>
         </div>
 
