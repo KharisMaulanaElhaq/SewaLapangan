@@ -1,0 +1,20 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/manage/venues
+method: POST
+headers:
+  Accept: application/json
+  Authorization: Bearer {{TOKEN}}
+body:
+  type: json
+  content: |-
+    {
+        "name": "Arena Sport Hub Baru",
+        "city": "Jakarta Selatan",
+        "address": "Jl. RS Fatmawati No. 15",
+        "phone": "081299998888",
+        "dp_percent": 30,
+        "cancel_free_hours": 24,
+        "cancel_refund_percent": 100,
+        "description": "Fasilitas futsal vinyl & badminton karpet premium"
+    }
+order: 2000

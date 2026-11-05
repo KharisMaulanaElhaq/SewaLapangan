@@ -2,6 +2,10 @@
 workspace:
   id: c06e4b94-0da6-4c6a-8379-797fff55ba0e
 
+cloudResources:
+  collections:
+    ../postman/collections/Web Service Booking Lapangan Olahraga API v1: 950acbcc-ffaa-4b47-b4dc-261cbda15d41
+
 # All resources in the `postman/` folder are automatically registered in Local View.
 # Point to additional files outside the `postman/` folder to register them individually. Example:
 #localResources:

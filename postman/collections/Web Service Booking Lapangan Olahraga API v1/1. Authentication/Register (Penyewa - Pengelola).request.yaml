@@ -1,0 +1,18 @@
+$kind: http-request
+name: Register (Penyewa / Pengelola)
+url: http://127.0.0.1:8000/api/v1/auth/register
+method: POST
+headers:
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Budi Penyewa",
+        "email": "budi.baru@example.com",
+        "phone": "08123456789",
+        "password": "password123",
+        "password_confirmation": "password123",
+        "role": "penyewa"
+    }
+order: 1000

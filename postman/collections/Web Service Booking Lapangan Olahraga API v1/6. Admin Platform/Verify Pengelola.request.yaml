@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/admin/users/3/verify
+method: PATCH
+headers:
+  Accept: application/json
+  Authorization: Bearer {{TOKEN}}
+body:
+  type: json
+  content: |-
+    {
+        "status": "active"
+    }
+order: 2000

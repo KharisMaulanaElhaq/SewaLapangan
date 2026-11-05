@@ -1,0 +1,16 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/manage/blocks
+method: POST
+headers:
+  Accept: application/json
+  Authorization: Bearer {{TOKEN}}
+body:
+  type: json
+  content: |-
+    {
+        "court_id": 1,
+        "start_at": "2026-11-05 10:00:00",
+        "end_at": "2026-11-05 14:00:00",
+        "reason": "Perawatan rumput sintetis"
+    }
+order: 6000

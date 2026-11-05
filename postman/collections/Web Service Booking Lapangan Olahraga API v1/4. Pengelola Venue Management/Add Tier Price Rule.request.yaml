@@ -1,0 +1,17 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/manage/prices
+method: POST
+headers:
+  Accept: application/json
+  Authorization: Bearer {{TOKEN}}
+body:
+  type: json
+  content: |-
+    {
+        "court_id": 1,
+        "day_type": "weekend",
+        "start_time": "17:00",
+        "end_time": "23:00",
+        "price": 180000
+    }
+order: 5000

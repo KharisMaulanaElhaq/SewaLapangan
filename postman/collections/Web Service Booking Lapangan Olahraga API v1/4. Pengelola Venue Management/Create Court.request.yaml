@@ -1,0 +1,19 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/manage/courts
+method: POST
+headers:
+  Accept: application/json
+  Authorization: Bearer {{TOKEN}}
+body:
+  type: json
+  content: |-
+    {
+        "venue_id": 1,
+        "name": "Lapangan Badminton 2",
+        "sport_type": "badminton",
+        "is_active": true,
+        "open_time": "08:00",
+        "close_time": "23:00",
+        "price": 75000
+    }
+order: 4000

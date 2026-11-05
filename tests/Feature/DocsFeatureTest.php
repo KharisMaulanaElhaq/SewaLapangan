@@ -25,9 +25,25 @@ class DocsFeatureTest extends TestCase
         
         $json = $response->json();
         $this->assertArrayHasKey('info', $json);
+        $this->assertArrayHasKey('variable', $json);
         $this->assertArrayHasKey('item', $json);
         $this->assertEquals('Web Service Booking Lapangan Olahraga API v1', $json['info']['name']);
         $this->assertGreaterThanOrEqual(5, count($json['item']));
+
+        // Verify that every endpoint has a standard-compliant Postman URL object with raw, protocol, host, and path
+        foreach ($json['item'] as $group) {
+            foreach ($group['item'] as $endpoint) {
+                $url = $endpoint['request']['url'];
+                $this->assertIsArray($url, "URL in endpoint {$endpoint['name']} must be an array/object");
+                $this->assertArrayHasKey('raw', $url);
+                $this->assertNotEmpty($url['raw']);
+                $this->assertArrayHasKey('protocol', $url);
+                $this->assertArrayHasKey('host', $url);
+                $this->assertNotEmpty($url['host']);
+                $this->assertArrayHasKey('path', $url);
+                $this->assertNotEmpty($url['path']);
+            }
+        }
     }
 
     public function test_openapi_yaml_is_accessible(): void

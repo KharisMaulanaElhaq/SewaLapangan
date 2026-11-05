@@ -34,6 +34,44 @@ class DocsController extends Controller
     }
 
     /**
+     * Build standard-compliant Postman v2.1 URL object with raw, protocol, host, port, path, and query.
+     */
+    private function buildPostmanUrl(string $urlStr): array
+    {
+        $parsed = parse_url($urlStr);
+        $scheme = $parsed['scheme'] ?? 'http';
+        $hostStr = $parsed['host'] ?? '127.0.0.1';
+        $host = explode('.', $hostStr);
+        $rawPath = $parsed['path'] ?? '';
+        $path = array_values(array_filter(explode('/', $rawPath), fn ($p) => $p !== ''));
+
+        $urlObject = [
+            'raw' => $urlStr,
+            'protocol' => $scheme,
+            'host' => $host,
+            'path' => $path,
+        ];
+
+        if (isset($parsed['port'])) {
+            $urlObject['port'] = (string) $parsed['port'];
+        }
+
+        if (isset($parsed['query'])) {
+            parse_str($parsed['query'], $queryParams);
+            $queryItems = [];
+            foreach ($queryParams as $k => $v) {
+                $queryItems[] = [
+                    'key' => (string) $k,
+                    'value' => (string) $v,
+                ];
+            }
+            $urlObject['query'] = $queryItems;
+        }
+
+        return $urlObject;
+    }
+
+    /**
      * Export downloadable Postman Collection JSON.
      */
     public function postman(): JsonResponse
@@ -46,6 +84,18 @@ class DocsController extends Controller
                 'description' => 'Dokumentasi REST API Web Service Booking Lapangan Olahraga - Kelompok 3 (Universitas Harkat Negeri 2026)',
                 'schema' => 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
             ],
+            'variable' => [
+                [
+                    'key' => 'baseUrl',
+                    'value' => $baseUrl,
+                    'type' => 'string',
+                ],
+                [
+                    'key' => 'TOKEN',
+                    'value' => '',
+                    'type' => 'string',
+                ],
+            ],
             'item' => [
                 [
                     'name' => '1. Authentication',
@@ -55,7 +105,7 @@ class DocsController extends Controller
                             'request' => [
                                 'method' => 'POST',
                                 'header' => [['key' => 'Accept', 'value' => 'application/json']],
-                                'url' => ['raw' => "{$baseUrl}/auth/register"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/auth/register"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -75,12 +125,13 @@ class DocsController extends Controller
                             'request' => [
                                 'method' => 'POST',
                                 'header' => [['key' => 'Accept', 'value' => 'application/json']],
-                                'url' => ['raw' => "{$baseUrl}/auth/login"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/auth/login"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
                                         'email' => 'arif.penyewa@gmail.com',
                                         'password' => 'password123',
+                                        'device_name' => 'postman',
                                     ], JSON_PRETTY_PRINT),
                                     'options' => ['raw' => ['language' => 'json']],
                                 ],
@@ -94,7 +145,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/auth/me"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/auth/me"),
                             ],
                         ],
                         [
@@ -105,7 +156,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/auth/me"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/auth/me"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -124,7 +175,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/auth/logout"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/auth/logout"),
                             ],
                         ],
                     ],
@@ -136,21 +187,21 @@ class DocsController extends Controller
                             'name' => 'Search Venues',
                             'request' => [
                                 'method' => 'GET',
-                                'url' => ['raw' => "{$baseUrl}/venues?city=Jakarta&sport=futsal"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/venues?city=Jakarta&sport=futsal"),
                             ],
                         ],
                         [
                             'name' => 'Get Venue Detail',
                             'request' => [
                                 'method' => 'GET',
-                                'url' => ['raw' => "{$baseUrl}/venues/1"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/venues/1"),
                             ],
                         ],
                         [
                             'name' => 'Get Court Slot Availability',
                             'request' => [
                                 'method' => 'GET',
-                                'url' => ['raw' => "{$baseUrl}/courts/1/availability?date=" . date('Y-m-d')],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/courts/1/availability?date=" . date('Y-m-d')),
                             ],
                         ],
                     ],
@@ -166,7 +217,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/bookings"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/bookings"),
                             ],
                         ],
                         [
@@ -177,7 +228,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/bookings/1"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/bookings/1"),
                             ],
                         ],
                         [
@@ -188,7 +239,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/bookings"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/bookings"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -211,7 +262,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/bookings/1/pay"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/bookings/1/pay"),
                             ],
                         ],
                         [
@@ -222,7 +273,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/bookings/1/cancel"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/bookings/1/cancel"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode(['reason' => 'Perubahan jadwal tim'], JSON_PRETTY_PRINT),
@@ -243,7 +294,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/manage/venues"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/venues"),
                             ],
                         ],
                         [
@@ -254,7 +305,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/manage/venues"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/venues"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -279,7 +330,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/manage/venues/1"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/venues/1"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -303,7 +354,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/manage/courts"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/courts"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -327,7 +378,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/manage/prices"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/prices"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -349,7 +400,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/manage/blocks"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/blocks"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -370,7 +421,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/manage/bookings/1/status"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/bookings/1/status"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode(['status' => 'COMPLETED'], JSON_PRETTY_PRINT),
@@ -387,14 +438,14 @@ class DocsController extends Controller
                             'name' => 'Midtrans Webhook',
                             'request' => [
                                 'method' => 'POST',
-                                'url' => ['raw' => "{$baseUrl}/payments/webhook/midtrans"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/payments/webhook/midtrans"),
                             ],
                         ],
                         [
                             'name' => 'Simulate Sandbox Payment (Direct Test)',
                             'request' => [
                                 'method' => 'POST',
-                                'url' => ['raw' => "{$baseUrl}/payments/simulate"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/payments/simulate"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
@@ -419,7 +470,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/admin/users?role=pengelola"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/admin/users?role=pengelola"),
                             ],
                         ],
                         [
@@ -430,7 +481,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/admin/users/3/verify"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/admin/users/3/verify"),
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode(['status' => 'active'], JSON_PRETTY_PRINT),
@@ -446,7 +497,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/admin/transactions"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/admin/transactions"),
                             ],
                         ],
                         [
@@ -457,7 +508,7 @@ class DocsController extends Controller
                                     ['key' => 'Accept', 'value' => 'application/json'],
                                     ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
                                 ],
-                                'url' => ['raw' => "{$baseUrl}/admin/webhook-logs"],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/admin/webhook-logs"),
                             ],
                         ],
                     ],

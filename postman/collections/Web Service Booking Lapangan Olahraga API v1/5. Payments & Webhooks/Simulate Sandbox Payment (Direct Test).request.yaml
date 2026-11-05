@@ -1,0 +1,12 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/payments/simulate
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "order_id": "PAY-BK-SEED-DP",
+        "transaction_status": "settlement",
+        "payment_type": "qris"
+    }
+order: 2000

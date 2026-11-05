@@ -1,0 +1,14 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/auth/me
+method: PUT
+headers:
+  Accept: application/json
+  Authorization: Bearer {{TOKEN}}
+body:
+  type: json
+  content: |-
+    {
+        "name": "Budi Penyewa Updated",
+        "phone": "08199999999"
+    }
+order: 4000

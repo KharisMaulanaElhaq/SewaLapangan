@@ -1,0 +1,18 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/bookings
+method: POST
+headers:
+  Accept: application/json
+  Authorization: Bearer {{TOKEN}}
+body:
+  type: json
+  content: |-
+    {
+        "court_id": 1,
+        "slots": [
+            "2026-11-07T14:00:00Z",
+            "2026-11-07T15:00:00Z"
+        ],
+        "notes": "Sparring futsal antar angkatan"
+    }
+order: 3000

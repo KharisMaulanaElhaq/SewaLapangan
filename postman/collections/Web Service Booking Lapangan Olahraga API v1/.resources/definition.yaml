@@ -1,0 +1,5 @@
+$kind: collection
+description: Dokumentasi REST API Web Service Booking Lapangan Olahraga - Kelompok 3 (Universitas Harkat Negeri 2026)
+variables:
+  baseUrl: http://127.0.0.1:8000/api/v1
+  TOKEN: ""

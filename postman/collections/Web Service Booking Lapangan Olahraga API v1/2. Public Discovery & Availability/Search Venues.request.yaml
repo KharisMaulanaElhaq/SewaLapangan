@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/v1/venues?city=Jakarta&sport=futsal
+method: GET
+queryParams:
+  city: Jakarta
+  sport: futsal
+order: 1000
