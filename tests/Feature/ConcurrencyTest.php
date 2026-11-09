@@ -80,7 +80,7 @@ class ConcurrencyTest extends TestCase
             $users[] = User::create([
                 'name' => "User {$i}",
                 'email' => "user{$i}@concurrent.test",
-                'phone' => "08" . str_pad((string)$i, 9, '0', STR_PAD_LEFT),
+                'phone' => '08'.str_pad((string) $i, 9, '0', STR_PAD_LEFT),
                 'password' => bcrypt('password123'),
                 'role' => 'penyewa',
                 'status' => 'active',
@@ -110,8 +110,8 @@ class ConcurrencyTest extends TestCase
 
         // VERIFY PRD METRIC:
         // Exactly 1 success, exactly 49 failed (0 bentrok / double booking)
-        $this->assertEquals(1, $successCount, "Tepat 1 booking harus berhasil!");
-        $this->assertEquals(49, $failCount, "Tepat 49 booking lainnya harus ditolak!");
+        $this->assertEquals(1, $successCount, 'Tepat 1 booking harus berhasil!');
+        $this->assertEquals(49, $failCount, 'Tepat 49 booking lainnya harus ditolak!');
 
         // Verify DB only has 1 booking slot record
         $this->assertEquals(1, Booking::where('court_id', $court->id)->count());

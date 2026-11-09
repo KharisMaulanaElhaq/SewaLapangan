@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthAndRoleTest extends TestCase
@@ -89,7 +90,7 @@ class AuthAndRoleTest extends TestCase
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/auth/logout');
 
         $response->assertStatus(204);
@@ -112,7 +113,7 @@ class AuthAndRoleTest extends TestCase
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->putJson('/api/v1/me', [
                 'name' => 'Nama Baru',
                 'phone' => '089988776655',
@@ -132,7 +133,7 @@ class AuthAndRoleTest extends TestCase
         $freshUser = $user->fresh();
         $this->assertEquals('Nama Baru', $freshUser->name);
         $this->assertEquals('089988776655', $freshUser->phone);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('newpassword123', $freshUser->password));
+        $this->assertTrue(Hash::check('newpassword123', $freshUser->password));
     }
 
     /**
@@ -152,7 +153,7 @@ class AuthAndRoleTest extends TestCase
         $token = $user->createToken('auth-token')->plainTextToken;
 
         // Missing name and short password
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->putJson('/api/v1/me', [
                 'name' => '',
                 'phone' => '08123',
@@ -190,7 +191,7 @@ class AuthAndRoleTest extends TestCase
         // Login as admin
         $adminToken = $admin->createToken('admin-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $response = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->patchJson("/api/v1/admin/users/{$pendingPengelola->id}/verify", [
                 'status' => 'active',
             ]);
@@ -234,21 +235,21 @@ class AuthAndRoleTest extends TestCase
         $adminToken = $admin->createToken('admin-token')->plainTextToken;
 
         // Search by name
-        $response = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $response = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/users?q=Bambang');
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals('Bambang Sudirman', $response->json('data.0.name'));
 
         // Search by email
-        $responseEmail = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $responseEmail = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/users?q=siti.aminah');
         $responseEmail->assertStatus(200);
         $this->assertCount(1, $responseEmail->json('data'));
         $this->assertEquals('Siti Aminah', $responseEmail->json('data.0.name'));
 
         // Search by phone
-        $responsePhone = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $responsePhone = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/users?q=085512345678');
         $responsePhone->assertStatus(200);
         $this->assertCount(1, $responsePhone->json('data'));
@@ -272,7 +273,7 @@ class AuthAndRoleTest extends TestCase
         $adminToken = $admin->createToken('admin-token')->plainTextToken;
 
         // Allowed sort by name ascending
-        $responseSortName = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $responseSortName = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/users?sort=name');
         $responseSortName->assertStatus(200);
         $responseSortName->assertJsonStructure([
@@ -283,17 +284,17 @@ class AuthAndRoleTest extends TestCase
         ]);
 
         // Disallowed sort should return 422
-        $responseInvalidSort = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $responseInvalidSort = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/users?sort=unsupported_column');
         $responseInvalidSort->assertStatus(422);
 
         // per_page > 100 should return 422 validation error
-        $responseOverPage = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $responseOverPage = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/users?per_page=101');
         $responseOverPage->assertStatus(422);
 
         // per_page exactly 100 should succeed
-        $responseValidPage = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
+        $responseValidPage = $this->withHeader('Authorization', 'Bearer '.$adminToken)
             ->getJson('/api/v1/admin/users?per_page=100');
         $responseValidPage->assertStatus(200);
         $this->assertEquals(100, $responseValidPage->json('meta.per_page'));
@@ -343,6 +344,6 @@ class AuthAndRoleTest extends TestCase
         $fresh = $user->fresh();
         $this->assertEquals('Budi Web Profile Updated', $fresh->name);
         $this->assertEquals('089999990001', $fresh->phone);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('newpassword123', $fresh->password));
+        $this->assertTrue(Hash::check('newpassword123', $fresh->password));
     }
 }

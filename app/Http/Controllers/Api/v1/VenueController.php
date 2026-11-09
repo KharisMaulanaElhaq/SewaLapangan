@@ -36,7 +36,7 @@ class VenueController extends Controller
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0'],
             'q' => ['nullable', 'string', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:' . implode(',', self::ALLOWED_SORTS)],
+            'sort' => ['nullable', 'string', 'in:'.implode(',', self::ALLOWED_SORTS)],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
@@ -63,12 +63,12 @@ class VenueController extends Controller
 
         // Filter by City
         if ($request->filled('city')) {
-            $query->where('city', 'like', '%' . $request->city . '%');
+            $query->where('city', 'like', '%'.$request->city.'%');
         }
 
         // Filter by Sport Type (supports OpenAPI v1 `sport_type` and legacy `sport`)
         $sportType = $request->input('sport_type', $request->input('sport'));
-        if (!empty($sportType)) {
+        if (! empty($sportType)) {
             $query->whereHas('courts', function ($q) use ($sportType) {
                 $q->where('sport_type', $sportType)->where('is_active', true);
             });
@@ -77,9 +77,9 @@ class VenueController extends Controller
         // Search Keyword (Venue Name, Address, or City)
         if ($request->filled('q')) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->q . '%')
-                  ->orWhere('address', 'like', '%' . $request->q . '%')
-                  ->orWhere('city', 'like', '%' . $request->q . '%');
+                $q->where('name', 'like', '%'.$request->q.'%')
+                    ->orWhere('address', 'like', '%'.$request->q.'%')
+                    ->orWhere('city', 'like', '%'.$request->q.'%');
             });
         }
 
@@ -155,7 +155,7 @@ class VenueController extends Controller
             ->orWhere('slug', $id)
             ->first();
 
-        if (!$venue) {
+        if (! $venue) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Venue olahraga tidak ditemukan.',
@@ -169,4 +169,3 @@ class VenueController extends Controller
         ]);
     }
 }
-

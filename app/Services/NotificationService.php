@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\NotificationLog;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -24,7 +23,7 @@ class NotificationService
             userId: $user->id,
             type: 'booking_created',
             title: "Booking Baru Dibuat: {$booking->code}",
-            message: "Booking Anda untuk {$booking->court->name} di {$venue->name} telah dibuat. Silakan lakukan pembayaran DP sebesar Rp " . number_format($booking->dp_amount, 0, ',', '.') . " sebelum " . Carbon::parse($booking->expires_at)->setTimezone('Asia/Jakarta')->format('d M Y H:i') . " WIB."
+            message: "Booking Anda untuk {$booking->court->name} di {$venue->name} telah dibuat. Silakan lakukan pembayaran DP sebesar Rp ".number_format($booking->dp_amount, 0, ',', '.').' sebelum '.Carbon::parse($booking->expires_at)->setTimezone('Asia/Jakarta')->format('d M Y H:i').' WIB.'
         );
 
         // Log for venue owner
@@ -52,7 +51,7 @@ class NotificationService
             userId: $user->id,
             type: 'payment_success',
             title: "Pembayaran Berhasil! Booking Terkonfirmasi: {$booking->code}",
-            message: "Pembayaran DP sebesar Rp " . number_format($booking->dp_amount, 0, ',', '.') . " telah kami terima. Jadwal lapangan Anda telah terkonfirmasi."
+            message: 'Pembayaran DP sebesar Rp '.number_format($booking->dp_amount, 0, ',', '.').' telah kami terima. Jadwal lapangan Anda telah terkonfirmasi.'
         );
 
         // Pengelola
@@ -61,7 +60,7 @@ class NotificationService
                 userId: $owner->id,
                 type: 'payment_settlement_pengelola',
                 title: "DP Diterima: {$booking->code}",
-                message: "Pembayaran DP Rp " . number_format($booking->dp_amount, 0, ',', '.') . " untuk pemesanan {$booking->code} ({$booking->court->name}) telah lunas/settled."
+                message: 'Pembayaran DP Rp '.number_format($booking->dp_amount, 0, ',', '.')." untuk pemesanan {$booking->code} ({$booking->court->name}) telah lunas/settled."
             );
         }
     }
@@ -86,9 +85,9 @@ class NotificationService
     {
         $msg = "Booking {$booking->code} telah dibatalkan.";
         if ($booking->refund_amount > 0) {
-            $msg .= " Pengembalian dana (refund) sebesar Rp " . number_format($booking->refund_amount, 0, ',', '.') . " diproses sesuai kebijakan venue.";
+            $msg .= ' Pengembalian dana (refund) sebesar Rp '.number_format($booking->refund_amount, 0, ',', '.').' diproses sesuai kebijakan venue.';
         } else {
-            $msg .= " Tidak ada pengembalian dana berdasarkan ketentuan batas waktu pembatalan.";
+            $msg .= ' Tidak ada pengembalian dana berdasarkan ketentuan batas waktu pembatalan.';
         }
 
         $this->createLog(

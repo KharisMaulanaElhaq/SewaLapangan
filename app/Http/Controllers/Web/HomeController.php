@@ -26,11 +26,11 @@ class HomeController extends Controller
             }]);
 
         if ($request->filled('city')) {
-            $query->where('city', 'like', '%' . $request->city . '%');
+            $query->where('city', 'like', '%'.$request->city.'%');
         }
 
         $sportType = $request->input('sport_type', $request->input('sport'));
-        if (!empty($sportType)) {
+        if (! empty($sportType)) {
             $query->whereHas('courts', function ($q) use ($sportType) {
                 $q->where('sport_type', $sportType)->where('is_active', true);
             });
@@ -38,9 +38,9 @@ class HomeController extends Controller
 
         if ($request->filled('q')) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->q . '%')
-                  ->orWhere('address', 'like', '%' . $request->q . '%')
-                  ->orWhere('city', 'like', '%' . $request->q . '%');
+                $q->where('name', 'like', '%'.$request->q.'%')
+                    ->orWhere('address', 'like', '%'.$request->q.'%')
+                    ->orWhere('city', 'like', '%'.$request->q.'%');
             });
         }
 
@@ -62,4 +62,3 @@ class HomeController extends Controller
         return view('home', compact('venues', 'cities', 'sports'));
     }
 }
-

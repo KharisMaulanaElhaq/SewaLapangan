@@ -82,7 +82,7 @@ return new class extends Migration
             $table->foreignId('court_id')->constrained('courts')->cascadeOnDelete();
             $table->decimal('total_price', 12, 2);
             $table->decimal('dp_amount', 12, 2);
-            $table->string('status')->default('PENDING_PAYMENT')->index(); 
+            $table->string('status')->default('PENDING_PAYMENT')->index();
             // PENDING_PAYMENT, CONFIRMED, COMPLETED, EXPIRED, CANCELLED, NO_SHOW
             $table->dateTime('expires_at')->index();
             $table->unsignedInteger('cancel_free_hours_snapshot')->default(24);
@@ -116,7 +116,7 @@ return new class extends Migration
             $table->string('order_id')->unique();
             $table->string('type')->default('DP'); // DP, lunas
             $table->decimal('amount', 12, 2);
-            $table->string('status')->default('pending')->index(); 
+            $table->string('status')->default('pending')->index();
             // pending, settlement, expire, cancel, refund
             $table->string('payment_type')->nullable(); // bank_transfer, qris, gopay, etc.
             $table->string('gateway_ref')->nullable(); // transaction_id

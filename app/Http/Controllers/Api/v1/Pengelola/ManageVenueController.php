@@ -22,7 +22,7 @@ class ManageVenueController extends Controller
         $user = $request->user();
         $query = Venue::with(['courts.courtPrices', 'courts.operatingHours'])->latest();
 
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             $query->where('owner_id', $user->id);
         }
 
@@ -67,7 +67,7 @@ class ManageVenueController extends Controller
             'status' => 'success',
             'message' => 'Venue berhasil ditambahkan.',
             'data' => new VenueResource($venue),
-        ], 201)->header('Location', '/api/v1/venues/' . $venue->id);
+        ], 201)->header('Location', '/api/v1/venues/'.$venue->id);
     }
 
     /**
@@ -78,7 +78,7 @@ class ManageVenueController extends Controller
         $user = $request->user();
         $venue = Venue::find($id);
 
-        if (!$venue) {
+        if (! $venue) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Venue olahraga tidak ditemukan.',
@@ -86,7 +86,7 @@ class ManageVenueController extends Controller
             ], 404);
         }
 
-        if ($venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk mengubah venue ini.',
@@ -112,7 +112,7 @@ class ManageVenueController extends Controller
         $user = $request->user();
         $venue = Venue::find($id);
 
-        if (!$venue) {
+        if (! $venue) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Venue olahraga tidak ditemukan.',
@@ -120,7 +120,7 @@ class ManageVenueController extends Controller
             ], 404);
         }
 
-        if ($venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk menghapus venue ini.',

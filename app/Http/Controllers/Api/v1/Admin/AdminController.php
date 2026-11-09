@@ -35,7 +35,7 @@ class AdminController extends Controller
             'role' => ['nullable', 'string', 'in:penyewa,pengelola,admin'],
             'status' => ['nullable', 'string', 'in:active,pending,suspended'],
             'q' => ['nullable', 'string', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:' . implode(',', self::ALLOWED_USER_SORTS)],
+            'sort' => ['nullable', 'string', 'in:'.implode(',', self::ALLOWED_USER_SORTS)],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
@@ -61,9 +61,9 @@ class AdminController extends Controller
         if ($request->filled('q')) {
             $keyword = $request->input('q');
             $query->where(function ($q) use ($keyword) {
-                $q->where('name', 'like', '%' . $keyword . '%')
-                  ->orWhere('email', 'like', '%' . $keyword . '%')
-                  ->orWhere('phone', 'like', '%' . $keyword . '%');
+                $q->where('name', 'like', '%'.$keyword.'%')
+                    ->orWhere('email', 'like', '%'.$keyword.'%')
+                    ->orWhere('phone', 'like', '%'.$keyword.'%');
             });
         }
 
@@ -171,8 +171,8 @@ class AdminController extends Controller
         if ($request->boolean('failed_only')) {
             $query->where(function ($q) {
                 $q->where('signature_valid', false)
-                  ->orWhere('status', 'error')
-                  ->orWhere('status', 'rejected');
+                    ->orWhere('status', 'error')
+                    ->orWhere('status', 'rejected');
             });
         }
 

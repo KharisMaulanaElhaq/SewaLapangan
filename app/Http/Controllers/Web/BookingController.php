@@ -32,7 +32,7 @@ class BookingController extends Controller
         $user = Auth::user();
         $booking = Booking::with(['court.venue', 'bookingSlots', 'payments', 'user'])->findOrFail($id);
 
-        if ($booking->user_id !== $user->id && !$user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
+        if ($booking->user_id !== $user->id && ! $user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
             abort(403, 'Anda tidak memiliki hak akses ke booking ini.');
         }
 
@@ -64,7 +64,7 @@ class BookingController extends Controller
         $user = Auth::user();
         $booking = Booking::with(['court.venue', 'bookingSlots', 'payments', 'user'])->findOrFail($id);
 
-        if ($booking->user_id !== $user->id && !$user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
+        if ($booking->user_id !== $user->id && ! $user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
             abort(403, 'Anda tidak memiliki hak akses untuk mencetak E-Ticket booking ini.');
         }
 
@@ -87,7 +87,7 @@ class BookingController extends Controller
         }
 
         if ($request->filled('q')) {
-            $query->where('code', 'like', '%' . trim($request->q) . '%');
+            $query->where('code', 'like', '%'.trim($request->q).'%');
         }
 
         if ($request->filled('date_from')) {
@@ -95,10 +95,10 @@ class BookingController extends Controller
             $query->where(function ($q) use ($request, $fromStartUtc) {
                 $q->whereHas('bookingSlots', function ($slotQuery) use ($request, $fromStartUtc) {
                     $slotQuery->where('slot_start', '>=', $fromStartUtc)
-                              ->orWhereDate('slot_start', '>=', $request->date_from);
+                        ->orWhereDate('slot_start', '>=', $request->date_from);
                 })->orWhere(function ($fallback) use ($request) {
                     $fallback->doesntHave('bookingSlots')
-                             ->whereDate('created_at', '>=', $request->date_from);
+                        ->whereDate('created_at', '>=', $request->date_from);
                 });
             });
         }
@@ -108,10 +108,10 @@ class BookingController extends Controller
             $query->where(function ($q) use ($request, $toEndUtc) {
                 $q->whereHas('bookingSlots', function ($slotQuery) use ($request, $toEndUtc) {
                     $slotQuery->where('slot_start', '<=', $toEndUtc)
-                              ->orWhereDate('slot_start', '<=', $request->date_to);
+                        ->orWhereDate('slot_start', '<=', $request->date_to);
                 })->orWhere(function ($fallback) use ($request) {
                     $fallback->doesntHave('bookingSlots')
-                             ->whereDate('created_at', '<=', $request->date_to);
+                        ->whereDate('created_at', '<=', $request->date_to);
                 });
             });
         }
@@ -145,7 +145,7 @@ class BookingController extends Controller
 
             $msg = 'Booking berhasil dibatalkan.';
             if ($cancelledBooking->refund_amount > 0) {
-                $msg .= ' Pengembalian DP sebesar Rp ' . number_format($cancelledBooking->refund_amount, 0, ',', '.') . ' telah disetujui.';
+                $msg .= ' Pengembalian DP sebesar Rp '.number_format($cancelledBooking->refund_amount, 0, ',', '.').' telah disetujui.';
             }
 
             return back()->with('success', $msg);

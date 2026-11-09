@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Booking;
-use App\Models\BookingSlot;
 use App\Models\Court;
 use App\Models\Payment;
 use App\Models\User;
@@ -17,10 +16,15 @@ class PaymentWebhookTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Venue $venue;
+
     protected Court $court;
+
     protected Booking $booking;
+
     protected Payment $payment;
+
     protected string $serverKey;
 
     protected function setUp(): void
@@ -84,7 +88,7 @@ class PaymentWebhookTest extends TestCase
     {
         $statusCode = '200';
         $grossAmount = '60000.00';
-        $signature = hash('sha512', $this->payment->order_id . $statusCode . $grossAmount . $this->serverKey);
+        $signature = hash('sha512', $this->payment->order_id.$statusCode.$grossAmount.$this->serverKey);
 
         $payload = [
             'order_id' => $this->payment->order_id,
@@ -155,7 +159,7 @@ class PaymentWebhookTest extends TestCase
         $orderId = 'PAY-NONEXISTENT-999';
         $statusCode = '200';
         $grossAmount = '50000.00';
-        $signature = hash('sha512', $orderId . $statusCode . $grossAmount . $this->serverKey);
+        $signature = hash('sha512', $orderId.$statusCode.$grossAmount.$this->serverKey);
 
         $payload = [
             'order_id' => $orderId,
@@ -181,7 +185,7 @@ class PaymentWebhookTest extends TestCase
     {
         $statusCode = '200';
         $grossAmount = '60000.00';
-        $signature = hash('sha512', $this->payment->order_id . $statusCode . $grossAmount . $this->serverKey);
+        $signature = hash('sha512', $this->payment->order_id.$statusCode.$grossAmount.$this->serverKey);
 
         $payload = [
             'order_id' => $this->payment->order_id,

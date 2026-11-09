@@ -58,7 +58,7 @@ class PengelolaVenueManagementTest extends TestCase
         $this->assertNotNull($venue->image_url);
 
         $filename = basename($venue->image_url);
-        Storage::disk('public')->assertExists('venues/' . $filename);
+        Storage::disk('public')->assertExists('venues/'.$filename);
     }
 
     public function test_pengelola_can_update_their_own_venue(): void

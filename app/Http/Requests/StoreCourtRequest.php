@@ -23,5 +23,4 @@ class StoreCourtRequest extends FormRequest
             'is_active' => ['nullable', 'boolean'],
         ];
     }
-
 }

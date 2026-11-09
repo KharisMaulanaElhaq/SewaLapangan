@@ -66,7 +66,7 @@ class PaymentWebhookController extends Controller
 
         $statusCode = '200';
         $grossAmount = number_format($payment->amount, 2, '.', '');
-        $signature = hash('sha512', $payment->order_id . $statusCode . $grossAmount . $serverKey);
+        $signature = hash('sha512', $payment->order_id.$statusCode.$grossAmount.$serverKey);
 
         $payload = [
             'order_id' => $payment->order_id,
@@ -76,7 +76,7 @@ class PaymentWebhookController extends Controller
             'transaction_status' => $request->transaction_status,
             'fraud_status' => 'accept',
             'payment_type' => $request->input('payment_type', 'qris'),
-            'transaction_id' => 'midtrans-trx-' . time(),
+            'transaction_id' => 'midtrans-trx-'.time(),
             'transaction_time' => now()->toDateTimeString(),
         ];
 

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Booking;
-use App\Models\BookingSlot;
 use App\Models\Court;
 use App\Models\CourtPrice;
 use App\Models\OperatingHour;
@@ -20,10 +19,15 @@ class BookingServiceTest extends TestCase
     use RefreshDatabase;
 
     protected User $penyewa;
+
     protected User $penyewa2;
+
     protected User $pengelola;
+
     protected Venue $venue;
+
     protected Court $court;
+
     protected BookingService $bookingService;
 
     protected function setUp(): void

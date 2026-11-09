@@ -11,12 +11,17 @@ class Payment extends Model
     use HasFactory;
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_SETTLEMENT = 'settlement';
+
     public const STATUS_EXPIRE = 'expire';
+
     public const STATUS_CANCEL = 'cancel';
+
     public const STATUS_REFUND = 'refund';
 
     public const TYPE_DP = 'DP';
+
     public const TYPE_LUNAS = 'lunas';
 
     protected $fillable = [

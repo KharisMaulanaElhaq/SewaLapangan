@@ -63,8 +63,7 @@ class CourtPhotoUploadTest extends TestCase
         // Verify stored files in public disk
         $filename1 = basename($court->images[0]);
         $filename2 = basename($court->images[1]);
-        Storage::disk('public')->assertExists('courts/' . $filename1);
-        Storage::disk('public')->assertExists('courts/' . $filename2);
+        Storage::disk('public')->assertExists('courts/'.$filename1);
+        Storage::disk('public')->assertExists('courts/'.$filename2);
     }
 }
-

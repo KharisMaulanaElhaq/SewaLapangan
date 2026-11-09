@@ -14,10 +14,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   laravel-tests:
     name: Tests (PHP ${{ matrix.php }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -38,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Get Composer Cache Directory
@@ -79,7 +82,7 @@ jobs:
 
   code-lint:
     name: Code Style & Quality Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -96,5 +99,4 @@ jobs:
 
       - name: Check Code Style (Laravel Pint)
         run: vendor/bin/pint --test
-        continue-on-error: true
 

@@ -18,9 +18,13 @@ class PaymentFinancialSummaryTest extends TestCase
     use RefreshDatabase;
 
     protected Venue $venue;
+
     protected Court $court1;
+
     protected Court $court2;
+
     protected User $user;
+
     protected MidtransService $midtransService;
 
     protected function setUp(): void

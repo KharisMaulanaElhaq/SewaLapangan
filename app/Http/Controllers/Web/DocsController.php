@@ -23,7 +23,7 @@ class DocsController extends Controller
     public function openapi(): Response
     {
         $path = base_path('docs/openapi.yaml');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404, 'Spesifikasi OpenAPI tidak ditemukan.');
         }
 
@@ -95,6 +95,16 @@ class DocsController extends Controller
                     'value' => '',
                     'type' => 'string',
                 ],
+                [
+                    'key' => 'TOKEN_PENGELOLA',
+                    'value' => '',
+                    'type' => 'string',
+                ],
+                [
+                    'key' => 'TOKEN_ADMIN',
+                    'value' => '',
+                    'type' => 'string',
+                ],
             ],
             'item' => [
                 [
@@ -109,8 +119,8 @@ class DocsController extends Controller
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
-                                        'name' => 'Budi Penyewa',
-                                        'email' => 'budi.baru@example.com',
+                                        'name' => 'Pelanggan Demo',
+                                        'email' => 'pelanggan.demo@example.com',
                                         'phone' => '08123456789',
                                         'password' => 'password123',
                                         'password_confirmation' => 'password123',
@@ -121,7 +131,22 @@ class DocsController extends Controller
                             ],
                         ],
                         [
-                            'name' => 'Login',
+                            'name' => 'Login (Penyewa)',
+                            'event' => [
+                                [
+                                    'listen' => 'test',
+                                    'script' => [
+                                        'exec' => [
+                                            'var jsonData = pm.response.json();',
+                                            'if (jsonData && jsonData.data && jsonData.data.token) {',
+                                            '    pm.collectionVariables.set("TOKEN", jsonData.data.token);',
+                                            '    console.log("Token Penyewa tersimpan di variable {{TOKEN}}");',
+                                            '}',
+                                        ],
+                                        'type' => 'text/javascript',
+                                    ],
+                                ],
+                            ],
                             'request' => [
                                 'method' => 'POST',
                                 'header' => [['key' => 'Accept', 'value' => 'application/json']],
@@ -130,6 +155,72 @@ class DocsController extends Controller
                                     'mode' => 'raw',
                                     'raw' => json_encode([
                                         'email' => 'arif.penyewa@gmail.com',
+                                        'password' => 'password123',
+                                        'device_name' => 'postman',
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Login (Pengelola)',
+                            'event' => [
+                                [
+                                    'listen' => 'test',
+                                    'script' => [
+                                        'exec' => [
+                                            'var jsonData = pm.response.json();',
+                                            'if (jsonData && jsonData.data && jsonData.data.token) {',
+                                            '    pm.collectionVariables.set("TOKEN", jsonData.data.token);',
+                                            '    pm.collectionVariables.set("TOKEN_PENGELOLA", jsonData.data.token);',
+                                            '    console.log("Token Pengelola tersimpan di variable {{TOKEN_PENGELOLA}} dan {{TOKEN}}");',
+                                            '}',
+                                        ],
+                                        'type' => 'text/javascript',
+                                    ],
+                                ],
+                            ],
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [['key' => 'Accept', 'value' => 'application/json']],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/auth/login"),
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'email' => 'pengelola@sportvenue.com',
+                                        'password' => 'password123',
+                                        'device_name' => 'postman',
+                                    ], JSON_PRETTY_PRINT),
+                                    'options' => ['raw' => ['language' => 'json']],
+                                ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Login (Admin)',
+                            'event' => [
+                                [
+                                    'listen' => 'test',
+                                    'script' => [
+                                        'exec' => [
+                                            'var jsonData = pm.response.json();',
+                                            'if (jsonData && jsonData.data && jsonData.data.token) {',
+                                            '    pm.collectionVariables.set("TOKEN", jsonData.data.token);',
+                                            '    pm.collectionVariables.set("TOKEN_ADMIN", jsonData.data.token);',
+                                            '    console.log("Token Admin tersimpan di variable {{TOKEN_ADMIN}} dan {{TOKEN}}");',
+                                            '}',
+                                        ],
+                                        'type' => 'text/javascript',
+                                    ],
+                                ],
+                            ],
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [['key' => 'Accept', 'value' => 'application/json']],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/auth/login"),
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'email' => 'admin@harkat.ac.id',
                                         'password' => 'password123',
                                         'device_name' => 'postman',
                                     ], JSON_PRETTY_PRINT),
@@ -160,7 +251,7 @@ class DocsController extends Controller
                                 'body' => [
                                     'mode' => 'raw',
                                     'raw' => json_encode([
-                                        'name' => 'Budi Penyewa Updated',
+                                        'name' => 'Pelanggan Demo Updated',
                                         'phone' => '08199999999',
                                     ], JSON_PRETTY_PRINT),
                                     'options' => ['raw' => ['language' => 'json']],
@@ -201,7 +292,7 @@ class DocsController extends Controller
                             'name' => 'Get Court Slot Availability',
                             'request' => [
                                 'method' => 'GET',
-                                'url' => $this->buildPostmanUrl("{$baseUrl}/courts/1/availability?date=" . date('Y-m-d')),
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/courts/1/availability?date=".date('Y-m-d')),
                             ],
                         ],
                     ],
@@ -427,6 +518,50 @@ class DocsController extends Controller
                                     'raw' => json_encode(['status' => 'COMPLETED'], JSON_PRETTY_PRINT),
                                     'options' => ['raw' => ['language' => 'json']],
                                 ],
+                            ],
+                        ],
+                        [
+                            'name' => 'Delete Schedule Block',
+                            'request' => [
+                                'method' => 'DELETE',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/blocks/1"),
+                            ],
+                        ],
+                        [
+                            'name' => 'Delete Court Price Rule',
+                            'request' => [
+                                'method' => 'DELETE',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/prices/1"),
+                            ],
+                        ],
+                        [
+                            'name' => 'Delete Court',
+                            'request' => [
+                                'method' => 'DELETE',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/courts/1"),
+                            ],
+                        ],
+                        [
+                            'name' => 'Delete Venue (Soft Guard)',
+                            'request' => [
+                                'method' => 'DELETE',
+                                'header' => [
+                                    ['key' => 'Accept', 'value' => 'application/json'],
+                                    ['key' => 'Authorization', 'value' => 'Bearer {{TOKEN}}'],
+                                ],
+                                'url' => $this->buildPostmanUrl("{$baseUrl}/manage/venues/1"),
                             ],
                         ],
                     ],

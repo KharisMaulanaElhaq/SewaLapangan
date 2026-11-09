@@ -26,4 +26,3 @@ class CourtResource extends JsonResource
         ];
     }
 }
-

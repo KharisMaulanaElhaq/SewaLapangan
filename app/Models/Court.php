@@ -33,14 +33,15 @@ class Court extends Model
      */
     public function getPrimaryImageUrlAttribute(): string
     {
-        if (!empty($this->image_url)) {
+        if (! empty($this->image_url)) {
             return str_starts_with($this->image_url, 'http')
                 ? $this->image_url
                 : asset($this->image_url);
         }
 
-        if (!empty($this->images) && is_array($this->images) && count($this->images) > 0) {
+        if (! empty($this->images) && is_array($this->images) && count($this->images) > 0) {
             $first = $this->images[0];
+
             return str_starts_with($first, 'http') ? $first : asset($first);
         }
 
@@ -54,7 +55,6 @@ class Court extends Model
             default => 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
         };
     }
-
 
     public function venue(): BelongsTo
     {

@@ -28,7 +28,7 @@ class VenueController extends Controller
             'courts' => function ($q) {
                 $q->where('is_active', true)->with(['courtPrices', 'operatingHours']);
             },
-            'owner'
+            'owner',
         ])->where('id', $id)->orWhere('slug', $id)->firstOrFail();
 
         $selectedCourtId = $request->query('court_id', $venue->courts->first()?->id);
@@ -49,7 +49,7 @@ class VenueController extends Controller
      */
     public function book(Request $request): RedirectResponse
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login')->with('warning', 'Silakan login terlebih dahulu untuk melakukan booking lapangan.');
         }
 

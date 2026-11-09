@@ -14,7 +14,6 @@ use App\Models\Venue;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -37,9 +36,9 @@ class DatabaseSeeder extends Seeder
         );
 
         $pengelolaActive = User::firstOrCreate(
-            ['email' => 'budi.pengelola@gmail.com'],
+            ['email' => 'pengelola@sportvenue.com'],
             [
-                'name' => 'Budi Santoso (Pengelola Venue)',
+                'name' => 'Kharis Maulana (Pengelola Venue)',
                 'phone' => '081398765432',
                 'password' => Hash::make('password123'),
                 'role' => 'pengelola',
@@ -85,7 +84,7 @@ class DatabaseSeeder extends Seeder
                 'dp_percent' => 30, // 30% DP
                 'cancel_free_hours' => 24, // 24 hours free cancellation
                 'cancel_refund_percent' => 100, // 100% DP refunded if cancelled > 24 hours
-                'image_url' => 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80',
+                'image_url' => '/storage/venues/venue-champions.jpg',
             ]
         );
 
@@ -101,7 +100,7 @@ class DatabaseSeeder extends Seeder
                 'dp_percent' => 30,
                 'cancel_free_hours' => 12,
                 'cancel_refund_percent' => 80,
-                'image_url' => 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=1200&q=80',
+                'image_url' => '/storage/venues/venue-starlight.jpg',
 
             ]
         );
@@ -112,6 +111,8 @@ class DatabaseSeeder extends Seeder
                 'venue_id' => $venue1->id,
                 'name' => 'Lapangan Futsal A (Vinyl Pro)',
                 'sport_type' => 'futsal',
+                'image_url' => '/storage/courts/futsal-pro.jpg',
+                'images' => ['/storage/courts/futsal-pro.jpg'],
                 'prices' => [
                     ['day_type' => 'weekday', 'start_time' => '08:00:00', 'end_time' => '17:00:00', 'price' => 120000],
                     ['day_type' => 'weekday', 'start_time' => '17:00:00', 'end_time' => '23:00:00', 'price' => 180000], // Prime
@@ -122,6 +123,8 @@ class DatabaseSeeder extends Seeder
                 'venue_id' => $venue1->id,
                 'name' => 'Lapangan Badminton 1 (Karpet Yonex)',
                 'sport_type' => 'badminton',
+                'image_url' => '/storage/courts/badminton-yonex.jpg',
+                'images' => ['/storage/courts/badminton-yonex.jpg'],
                 'prices' => [
                     ['day_type' => 'weekday', 'start_time' => '08:00:00', 'end_time' => '17:00:00', 'price' => 60000],
                     ['day_type' => 'weekday', 'start_time' => '17:00:00', 'end_time' => '23:00:00', 'price' => 85000],
@@ -132,6 +135,8 @@ class DatabaseSeeder extends Seeder
                 'venue_id' => $venue1->id,
                 'name' => 'Lapangan Basket Indoor',
                 'sport_type' => 'basketball',
+                'image_url' => '/storage/courts/basketball-indoor.jpg',
+                'images' => ['/storage/courts/basketball-indoor.jpg'],
                 'prices' => [
                     ['day_type' => 'weekday', 'start_time' => '08:00:00', 'end_time' => '17:00:00', 'price' => 150000],
                     ['day_type' => 'weekday', 'start_time' => '17:00:00', 'end_time' => '23:00:00', 'price' => 220000],
@@ -142,6 +147,8 @@ class DatabaseSeeder extends Seeder
                 'venue_id' => $venue2->id,
                 'name' => 'Mini Soccer Field 7 vs 7 (Rumput Sintetis)',
                 'sport_type' => 'mini_soccer',
+                'image_url' => '/storage/courts/minisoccer-turf.jpg',
+                'images' => ['/storage/courts/minisoccer-turf.jpg'],
                 'prices' => [
                     ['day_type' => 'weekday', 'start_time' => '08:00:00', 'end_time' => '16:00:00', 'price' => 350000],
                     ['day_type' => 'weekday', 'start_time' => '16:00:00', 'end_time' => '23:00:00', 'price' => 500000],
@@ -152,6 +159,8 @@ class DatabaseSeeder extends Seeder
                 'venue_id' => $venue2->id,
                 'name' => 'Lapangan Badminton A',
                 'sport_type' => 'badminton',
+                'image_url' => '/storage/courts/badminton-vip.jpg',
+                'images' => ['/storage/courts/badminton-vip.jpg'],
                 'prices' => [
                     ['day_type' => 'all', 'start_time' => '08:00:00', 'end_time' => '23:00:00', 'price' => 70000],
                 ],
@@ -161,7 +170,12 @@ class DatabaseSeeder extends Seeder
         foreach ($courtsData as $c) {
             $court = Court::firstOrCreate(
                 ['venue_id' => $c['venue_id'], 'name' => $c['name']],
-                ['sport_type' => $c['sport_type'], 'is_active' => true]
+                [
+                    'sport_type' => $c['sport_type'],
+                    'image_url' => $c['image_url'] ?? null,
+                    'images' => $c['images'] ?? null,
+                    'is_active' => true,
+                ]
             );
 
             // Operating hours: Sun-Sat 08:00 - 23:00
@@ -206,7 +220,7 @@ class DatabaseSeeder extends Seeder
             $slotStartUtc = Carbon::parse("{$bookDate} 19:00:00", 'Asia/Jakarta')->utc();
             $slotEndUtc = Carbon::parse("{$bookDate} 20:00:00", 'Asia/Jakarta')->utc();
 
-            $bookingCode = 'BK-' . date('Ymd') . '-DEMO1';
+            $bookingCode = 'BK-'.date('Ymd').'-DEMO1';
             $booking = Booking::firstOrCreate(
                 ['code' => $bookingCode],
                 [
@@ -232,7 +246,7 @@ class DatabaseSeeder extends Seeder
             );
 
             Payment::firstOrCreate(
-                ['booking_id' => $booking->id, 'order_id' => 'PAY-' . $booking->code . '-DP-SEED'],
+                ['booking_id' => $booking->id, 'order_id' => 'PAY-'.$booking->code.'-DP-SEED'],
                 [
                     'type' => 'DP',
                     'amount' => 54000,

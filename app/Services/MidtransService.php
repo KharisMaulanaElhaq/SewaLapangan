@@ -40,11 +40,11 @@ class MidtransService
     public function createSnapTransaction(Booking $booking, string $type = 'DP'): Payment
     {
         if ($booking->status !== Booking::STATUS_PENDING_PAYMENT) {
-            throw new PaymentNotAllowedException("Transaksi sudah dibayar atau telah melewati batas holding pembayaran.");
+            throw new PaymentNotAllowedException('Transaksi sudah dibayar atau telah melewati batas holding pembayaran.');
         }
 
         if (Carbon::now()->gte($booking->expires_at)) {
-            throw new PaymentNotAllowedException("Transaksi sudah dibayar atau telah melewati batas holding pembayaran.");
+            throw new PaymentNotAllowedException('Transaksi sudah dibayar atau telah melewati batas holding pembayaran.');
         }
 
         $booking->loadMissing(['user', 'court.venue']);
@@ -63,7 +63,7 @@ class MidtransService
             return $existingPayment;
         }
 
-        $orderId = 'PAY-' . $booking->code . '-' . strtoupper($type) . '-' . time();
+        $orderId = 'PAY-'.$booking->code.'-'.strtoupper($type).'-'.time();
 
         $params = [
             'transaction_details' => [
@@ -77,7 +77,7 @@ class MidtransService
             ],
             'item_details' => [
                 [
-                    'id' => 'SLOT-' . $booking->court_id,
+                    'id' => 'SLOT-'.$booking->court_id,
                     'price' => (int) $amount,
                     'quantity' => 1,
                     'name' => "DP Booking {$booking->court->name} ({$venue->name})",
@@ -95,18 +95,18 @@ class MidtransService
 
         // Try getting token from Midtrans Snap API
         try {
-            if (str_starts_with(Config::$serverKey, 'SB-Mid-server-') && strlen(Config::$serverKey) > 25 && !str_contains(Config::$serverKey, 'demo-key')) {
+            if (str_starts_with(Config::$serverKey, 'SB-Mid-server-') && strlen(Config::$serverKey) > 25 && ! str_contains(Config::$serverKey, 'demo-key')) {
                 $snapResponse = Snap::createTransaction($params);
                 $snapToken = $snapResponse->token;
                 $redirectUrl = $snapResponse->redirect_url;
             } else {
                 // High fidelity sandbox simulation token for immediate dev/test
-                $snapToken = 'snap-mock-' . md5($orderId . time());
+                $snapToken = 'snap-mock-'.md5($orderId.time());
                 $redirectUrl = "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}";
             }
         } catch (\Throwable $e) {
-            Log::warning("Midtrans API call fallback: " . $e->getMessage());
-            $snapToken = 'snap-sim-' . md5($orderId . time());
+            Log::warning('Midtrans API call fallback: '.$e->getMessage());
+            $snapToken = 'snap-sim-'.md5($orderId.time());
             $redirectUrl = "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}";
         }
 
@@ -128,7 +128,7 @@ class MidtransService
     public function verifySignature(string $orderId, string $statusCode, string $grossAmount, string $signatureKey): bool
     {
         $serverKey = config('midtrans.server_key');
-        $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+        $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
 
         return hash_equals($expectedSignature, $signatureKey);
     }
@@ -159,7 +159,7 @@ class MidtransService
             'status' => 'received',
         ]);
 
-        if (!$isSignatureValid) {
+        if (! $isSignatureValid) {
             $webhookLog->update([
                 'status' => WebhookLog::STATUS_REJECTED,
                 'error_message' => 'Invalid webhook signature key.',
@@ -169,7 +169,7 @@ class MidtransService
 
         // Find payment
         $payment = Payment::where('order_id', $orderId)->first();
-        if (!$payment) {
+        if (! $payment) {
             $webhookLog->update([
                 'status' => WebhookLog::STATUS_ERROR,
                 'error_message' => "Payment with order_id {$orderId} not found.",
@@ -185,6 +185,7 @@ class MidtransService
                 'status' => WebhookLog::STATUS_DUPLICATE_IGNORED,
                 'processed_at' => Carbon::now(),
             ]);
+
             return [
                 'status' => 'success',
                 'message' => 'Event already processed (idempotent).',

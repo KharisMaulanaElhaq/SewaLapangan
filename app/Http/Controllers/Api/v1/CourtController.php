@@ -24,7 +24,7 @@ class CourtController extends Controller
     {
         $venue = Venue::where('id', $id)->orWhere('slug', $id)->first();
 
-        if (!$venue) {
+        if (! $venue) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Venue olahraga tidak ditemukan.',
@@ -50,7 +50,7 @@ class CourtController extends Controller
     {
         $court = Court::with(['venue', 'courtPrices', 'operatingHours', 'scheduleBlocks'])->find($id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -71,7 +71,7 @@ class CourtController extends Controller
     {
         $court = Court::with('courtPrices')->find($id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -102,7 +102,7 @@ class CourtController extends Controller
     {
         $court = Court::with('operatingHours')->find($id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -135,7 +135,7 @@ class CourtController extends Controller
     {
         $court = Court::where('is_active', true)->find($id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan aktif tidak ditemukan.',
@@ -149,7 +149,7 @@ class CourtController extends Controller
         );
 
         // Date format validation (YYYY-MM-DD)
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateString)) {
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateString)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Format tanggal harus YYYY-MM-DD (contoh: 2026-10-25).',
@@ -188,4 +188,3 @@ class CourtController extends Controller
         ]);
     }
 }
-

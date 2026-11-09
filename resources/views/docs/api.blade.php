@@ -68,7 +68,7 @@
                     </svg>
                     <span>Token Penyewa</span>
                 </button>
-                <button type="button" @click="fetchDemoToken('budi.pengelola@gmail.com')"
+                <button type="button" @click="fetchDemoToken('pengelola@sportvenue.com')"
                     class="rounded-xl border border-slate-200 bg-white hover:border-blue-500 hover:bg-blue-50 px-3 py-2 text-xs font-bold text-slate-700 hover:text-blue-800 transition flex items-center gap-1.5 shadow-soft-xs min-h-[40px]">
                     <svg class="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -297,8 +297,8 @@
                     auth: null,
                     description: 'Mendaftar akun penyewa atau pengelola. Pengelola baru otomatis berstatus pending sampai diverifikasi oleh admin (FR-01 & FR-03).',
                     body: JSON.stringify({
-                        name: "Budi Satria",
-                        email: "budi.satria" + Math.floor(Math.random() * 1000) + "@gmail.com",
+                        name: "Pelanggan Demo",
+                        email: "pelanggan.demo" + Math.floor(Math.random() * 1000) + "@gmail.com",
                         phone: "08123456789",
                         password: "password123",
                         password_confirmation: "password123",
@@ -535,6 +535,42 @@
                     body: JSON.stringify({
                         status: "COMPLETED"
                     }, null, 2)
+                },
+                {
+                    title: 'Kelola: Hapus Blokir Jadwal Lapangan (FR-08)',
+                    category: 'manage',
+                    method: 'DELETE',
+                    endpoint: '{{ url("/api/v1/manage/blocks/1") }}',
+                    auth: 'Pengelola',
+                    description: 'Menghapus pemblokiran jadwal lapangan agar slot waktu kembali tersedia untuk disewa.',
+                    body: ''
+                },
+                {
+                    title: 'Kelola: Hapus Aturan Harga Lapangan (FR-06)',
+                    category: 'manage',
+                    method: 'DELETE',
+                    endpoint: '{{ url("/api/v1/manage/prices/1") }}',
+                    auth: 'Pengelola',
+                    description: 'Menghapus ketentuan aturan harga khusus (misal promo jam khusus yang sudah tidak berlaku).',
+                    body: ''
+                },
+                {
+                    title: 'Kelola: Hapus Unit Lapangan (FR-05)',
+                    category: 'manage',
+                    method: 'DELETE',
+                    endpoint: '{{ url("/api/v1/manage/courts/1") }}',
+                    auth: 'Pengelola',
+                    description: 'Menghapus unit lapangan dari venue (hanya diperbolehkan jika tidak memiliki transaksi booking aktif).',
+                    body: ''
+                },
+                {
+                    title: 'Kelola: Hapus Venue Lapangan (FR-04)',
+                    category: 'manage',
+                    method: 'DELETE',
+                    endpoint: '{{ url("/api/v1/manage/venues/1") }}',
+                    auth: 'Pengelola',
+                    description: 'Menghapus data venue milik pengelola (dilindungi proteksi foreign key guard jika terdapat pemesanan aktif).',
+                    body: ''
                 },
 
                 // 5. PAYMENT & WEBHOOK

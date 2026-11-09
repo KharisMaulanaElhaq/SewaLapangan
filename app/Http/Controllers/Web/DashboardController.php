@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Court;
+use App\Models\CourtPrice;
+use App\Models\OperatingHour;
 use App\Models\Payment;
 use App\Models\ScheduleBlock;
 use App\Models\User;
@@ -99,7 +101,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $booking = Booking::whereHas('court.venue', function ($q) use ($user) {
-            if (!$user->isAdmin()) {
+            if (! $user->isAdmin()) {
                 $q->where('owner_id', $user->id);
             }
         })->findOrFail($id);
@@ -110,6 +112,7 @@ class DashboardController extends Controller
 
         try {
             $this->bookingService->updateOperationalStatus($booking, $request->status);
+
             return back()->with('success', "Status booking {$booking->code} berhasil diubah ke {$request->status}.");
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -169,10 +172,10 @@ class DashboardController extends Controller
         $imageUrl = $request->input('image_url');
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('venues', 'public');
-            $imageUrl = '/storage/' . $path;
+            $imageUrl = '/storage/'.$path;
         }
 
-        if (!$imageUrl) {
+        if (! $imageUrl) {
             $imageUrl = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80';
         }
 
@@ -208,7 +211,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $venue = Venue::where(function ($q) use ($user) {
-            if (!$user->isAdmin()) {
+            if (! $user->isAdmin()) {
                 $q->where('owner_id', $user->id);
             }
         })->findOrFail($id);
@@ -231,12 +234,12 @@ class DashboardController extends Controller
 
         $data = $request->only([
             'name', 'city', 'address', 'phone', 'description',
-            'dp_percent', 'cancel_free_hours', 'cancel_refund_percent'
+            'dp_percent', 'cancel_free_hours', 'cancel_refund_percent',
         ]);
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('venues', 'public');
-            $data['image_url'] = '/storage/' . $path;
+            $data['image_url'] = '/storage/'.$path;
         } elseif ($request->filled('image_url')) {
             $data['image_url'] = $request->image_url;
         }
@@ -253,7 +256,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $venue = Venue::where(function ($q) use ($user) {
-            if (!$user->isAdmin()) {
+            if (! $user->isAdmin()) {
                 $q->where('owner_id', $user->id);
             }
         })->findOrFail($id);
@@ -299,31 +302,30 @@ class DashboardController extends Controller
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $file) {
                 $path = $file->store('courts', 'public');
-                $uploadedImages[] = '/storage/' . $path;
+                $uploadedImages[] = '/storage/'.$path;
             }
         } elseif ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('courts', 'public');
-            $uploadedImages[] = '/storage/' . $path;
+            $uploadedImages[] = '/storage/'.$path;
         }
 
-        $mainImageUrl = !empty($uploadedImages) ? $uploadedImages[0] : $request->input('image_url');
+        $mainImageUrl = ! empty($uploadedImages) ? $uploadedImages[0] : $request->input('image_url');
 
         $court = Court::create([
             'venue_id' => $venue->id,
             'name' => $request->name,
             'sport_type' => $request->sport_type,
             'image_url' => $mainImageUrl,
-            'images' => !empty($uploadedImages) ? $uploadedImages : ($mainImageUrl ? [$mainImageUrl] : null),
+            'images' => ! empty($uploadedImages) ? $uploadedImages : ($mainImageUrl ? [$mainImageUrl] : null),
             'is_active' => true,
         ]);
 
-
-        $openTime = $request->input('open_time', '08:00') . ':00';
-        $closeTime = $request->input('close_time', '23:00') . ':00';
+        $openTime = $request->input('open_time', '08:00').':00';
+        $closeTime = $request->input('close_time', '23:00').':00';
 
         // Create standard operating hours for all 7 days
         for ($day = 0; $day <= 6; $day++) {
-            \App\Models\OperatingHour::create([
+            OperatingHour::create([
                 'court_id' => $court->id,
                 'day_of_week' => $day,
                 'open_time' => $openTime,
@@ -333,7 +335,7 @@ class DashboardController extends Controller
         }
 
         // Create initial price tier
-        \App\Models\CourtPrice::create([
+        CourtPrice::create([
             'court_id' => $court->id,
             'day_type' => 'all',
             'start_time' => $openTime,
@@ -351,7 +353,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $court = Court::whereHas('venue', function ($q) use ($user) {
-            if (!$user->isAdmin()) {
+            if (! $user->isAdmin()) {
                 $q->where('owner_id', $user->id);
             }
         })->findOrFail($id);
@@ -363,8 +365,9 @@ class DashboardController extends Controller
         ]);
 
         if ($request->has('toggle_active')) {
-            $court->update(['is_active' => !$court->is_active]);
+            $court->update(['is_active' => ! $court->is_active]);
             $statusLabel = $court->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
             return back()->with('success', "Status lapangan '{$court->name}' berhasil {$statusLabel}.");
         }
 
@@ -380,7 +383,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $court = Court::whereHas('venue', function ($q) use ($user) {
-            if (!$user->isAdmin()) {
+            if (! $user->isAdmin()) {
                 $q->where('owner_id', $user->id);
             }
         })->findOrFail($id);
@@ -406,15 +409,15 @@ class DashboardController extends Controller
         ]);
 
         $court = Court::whereHas('venue', function ($q) use ($user) {
-            if (!$user->isAdmin()) {
+            if (! $user->isAdmin()) {
                 $q->where('owner_id', $user->id);
             }
         })->findOrFail($request->court_id);
 
-        $startTime = strlen($request->start_time) === 5 ? $request->start_time . ':00' : $request->start_time;
-        $endTime = strlen($request->end_time) === 5 ? $request->end_time . ':00' : $request->end_time;
+        $startTime = strlen($request->start_time) === 5 ? $request->start_time.':00' : $request->start_time;
+        $endTime = strlen($request->end_time) === 5 ? $request->end_time.':00' : $request->end_time;
 
-        \App\Models\CourtPrice::create([
+        CourtPrice::create([
             'court_id' => $court->id,
             'day_type' => $request->day_type,
             'start_time' => $startTime,
@@ -431,8 +434,8 @@ class DashboardController extends Controller
     public function destroyPrice(int $id): RedirectResponse
     {
         $user = Auth::user();
-        $price = \App\Models\CourtPrice::whereHas('court.venue', function ($q) use ($user) {
-            if (!$user->isAdmin()) {
+        $price = CourtPrice::whereHas('court.venue', function ($q) use ($user) {
+            if (! $user->isAdmin()) {
                 $q->where('owner_id', $user->id);
             }
         })->findOrFail($id);

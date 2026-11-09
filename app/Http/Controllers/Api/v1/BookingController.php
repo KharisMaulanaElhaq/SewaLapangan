@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Exceptions\PaymentNotAllowedException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CancelBookingRequest;
 use App\Http\Requests\CreateBookingRequest;
@@ -56,7 +57,7 @@ class BookingController extends Controller
     public function index(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'status' => ['nullable', 'string', 'in:' . implode(',', self::ALLOWED_STATUSES)],
+            'status' => ['nullable', 'string', 'in:'.implode(',', self::ALLOWED_STATUSES)],
             'court_id' => ['nullable', 'integer', 'min:1'],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => array_filter([
@@ -65,7 +66,7 @@ class BookingController extends Controller
                 $request->filled('date_from') ? 'after_or_equal:date_from' : null,
             ]),
             'q' => ['nullable', 'string', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:' . implode(',', self::ALLOWED_SORTS)],
+            'sort' => ['nullable', 'string', 'in:'.implode(',', self::ALLOWED_SORTS)],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
@@ -109,10 +110,10 @@ class BookingController extends Controller
             $query->where(function ($q) use ($request, $fromStartUtc) {
                 $q->whereHas('bookingSlots', function ($slotQuery) use ($request, $fromStartUtc) {
                     $slotQuery->where('slot_start', '>=', $fromStartUtc)
-                              ->orWhereDate('slot_start', '>=', $request->date_from);
+                        ->orWhereDate('slot_start', '>=', $request->date_from);
                 })->orWhere(function ($fallback) use ($request) {
                     $fallback->doesntHave('bookingSlots')
-                             ->whereDate('created_at', '>=', $request->date_from);
+                        ->whereDate('created_at', '>=', $request->date_from);
                 });
             });
         }
@@ -123,17 +124,17 @@ class BookingController extends Controller
             $query->where(function ($q) use ($request, $toEndUtc) {
                 $q->whereHas('bookingSlots', function ($slotQuery) use ($request, $toEndUtc) {
                     $slotQuery->where('slot_start', '<=', $toEndUtc)
-                              ->orWhereDate('slot_start', '<=', $request->date_to);
+                        ->orWhereDate('slot_start', '<=', $request->date_to);
                 })->orWhere(function ($fallback) use ($request) {
                     $fallback->doesntHave('bookingSlots')
-                             ->whereDate('created_at', '<=', $request->date_to);
+                        ->whereDate('created_at', '<=', $request->date_to);
                 });
             });
         }
 
         // Search by unique booking code (q)
         if ($request->filled('q')) {
-            $query->where('code', 'like', '%' . trim($request->q) . '%');
+            $query->where('code', 'like', '%'.trim($request->q).'%');
         }
 
         // Whitelist sorting (default: -created_at per OpenAPI v1)
@@ -179,7 +180,7 @@ class BookingController extends Controller
         $user = $request->user();
         $booking = Booking::with(['court.venue', 'bookingSlots', 'payments', 'user'])->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Transaksi booking tidak ditemukan.',
@@ -187,7 +188,7 @@ class BookingController extends Controller
             ], 404);
         }
 
-        if ($booking->user_id !== $user->id && !$user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
+        if ($booking->user_id !== $user->id && ! $user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki akses ke booking ini.',
@@ -222,7 +223,7 @@ class BookingController extends Controller
                 'status' => 'success',
                 'message' => 'Booking berhasil dibuat. Slot Anda telah di-HOLD selama 15 menit. Silakan segera selesaikan pembayaran DP.',
                 'data' => new BookingResource($booking),
-            ], 201)->header('Location', '/api/v1/bookings/' . $booking->id);
+            ], 201)->header('Location', '/api/v1/bookings/'.$booking->id);
         } catch (Exception $e) {
             $isConflict = str_contains($e->getMessage(), 'sedang dalam proses')
                 || str_contains($e->getMessage(), 'sudah terisi')
@@ -251,7 +252,7 @@ class BookingController extends Controller
         $user = $request->user();
         $booking = Booking::with('court.venue')->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Transaksi booking tidak ditemukan.',
@@ -259,7 +260,7 @@ class BookingController extends Controller
             ], 404);
         }
 
-        if ($booking->user_id !== $user->id && !$user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
+        if ($booking->user_id !== $user->id && ! $user->isAdmin() && $booking->court->venue->owner_id !== $user->id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki izin untuk membatalkan booking ini.',
@@ -300,7 +301,7 @@ class BookingController extends Controller
         $user = $request->user();
         $booking = Booking::with('court.venue')->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Transaksi booking tidak ditemukan.',
@@ -308,7 +309,7 @@ class BookingController extends Controller
             ], 404);
         }
 
-        if ($booking->user_id !== $user->id && !$user->isAdmin()) {
+        if ($booking->user_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki hak akses untuk membayar booking ini.',
@@ -328,7 +329,7 @@ class BookingController extends Controller
                 'amount' => (float) $payment->amount,
                 'data' => new PaymentResource($payment),
             ], 201);
-        } catch (\App\Exceptions\PaymentNotAllowedException $e) {
+        } catch (PaymentNotAllowedException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage() ?: 'Transaksi sudah dibayar atau telah melewati batas holding pembayaran.',

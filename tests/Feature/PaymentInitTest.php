@@ -17,9 +17,13 @@ class PaymentInitTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected User $otherUser;
+
     protected Venue $venue;
+
     protected Court $court;
+
     protected Booking $booking;
 
     protected function setUp(): void

@@ -38,4 +38,3 @@ class VenueResource extends JsonResource
         ];
     }
 }
-

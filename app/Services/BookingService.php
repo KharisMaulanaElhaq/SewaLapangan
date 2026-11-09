@@ -8,7 +8,6 @@ use App\Models\Court;
 use App\Models\ScheduleBlock;
 use App\Models\User;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +33,7 @@ class BookingService
 
         // 1. Operating hours for this day of week
         $operatingHour = $court->operatingHours->firstWhere('day_of_week', $dayOfWeek);
-        if (!$operatingHour) {
+        if (! $operatingHour) {
             // Default operating hour if none configured: 08:00 - 23:00, 60 mins
             $openTimeStr = '08:00:00';
             $closeTimeStr = '23:00:00';
@@ -55,11 +54,11 @@ class BookingService
         $scheduleBlocks = ScheduleBlock::where('court_id', $court->id)
             ->where(function ($q) use ($dayStartUtc, $dayEndUtc) {
                 $q->whereBetween('start_at', [$dayStartUtc, $dayEndUtc])
-                  ->orWhereBetween('end_at', [$dayStartUtc, $dayEndUtc])
-                  ->orWhere(function ($sub) use ($dayStartUtc, $dayEndUtc) {
-                      $sub->where('start_at', '<=', $dayStartUtc)
-                          ->where('end_at', '>=', $dayEndUtc);
-                  });
+                    ->orWhereBetween('end_at', [$dayStartUtc, $dayEndUtc])
+                    ->orWhere(function ($sub) use ($dayStartUtc, $dayEndUtc) {
+                        $sub->where('start_at', '<=', $dayStartUtc)
+                            ->where('end_at', '>=', $dayEndUtc);
+                    });
             })
             ->get();
 
@@ -129,7 +128,7 @@ class BookingService
                 'price' => (float) $price,
                 'status' => $status,
                 'is_past' => $isPast,
-                'is_bookable' => ($status === 'available' && !$isPast),
+                'is_bookable' => ($status === 'available' && ! $isPast),
             ];
 
             $currentCursor->addMinutes($slotDuration);
@@ -169,6 +168,7 @@ class BookingService
             ->first(function ($cp) use ($dayType, $timeStr) {
                 $matchesDay = ($cp->day_type === 'all' || $cp->day_type === $dayType);
                 $matchesTime = ($timeStr >= $cp->start_time && $timeStr < $cp->end_time);
+
                 return $matchesDay && $matchesTime;
             });
 
@@ -178,6 +178,7 @@ class BookingService
 
         // Fallback default court price
         $anyPrice = $court->courtPrices->first();
+
         return $anyPrice ? (float) $anyPrice->price : 100000.00;
     }
 
@@ -190,7 +191,7 @@ class BookingService
     public function createBooking(User $user, Court $court, array $slotStartsUtc, ?string $notes = null): Booking
     {
         if (empty($slotStartsUtc)) {
-            throw new Exception("Minimal satu slot harus dipilih untuk booking.");
+            throw new Exception('Minimal satu slot harus dipilih untuk booking.');
         }
 
         // Sort slot starts chronologically
@@ -199,8 +200,8 @@ class BookingService
         $court->loadMissing(['venue', 'courtPrices', 'operatingHours']);
         $venue = $court->venue;
 
-        if (!$court->is_active) {
-            throw new Exception("Lapangan saat ini sedang tidak aktif.");
+        if (! $court->is_active) {
+            throw new Exception('Lapangan saat ini sedang tidak aktif.');
         }
 
         // Clean up expired bookings first
@@ -215,12 +216,12 @@ class BookingService
             $lockKey = "court:{$court->id}:slot:{$ts}";
             $lock = Cache::lock($lockKey, 5); // 5 seconds lock
 
-            if (!$lock->get()) {
+            if (! $lock->get()) {
                 // Release any previously acquired locks
                 foreach ($acquiredLocks as $l) {
                     $l->release();
                 }
-                throw new Exception("Slot yang Anda pilih sedang dalam proses booking oleh pengguna lain. Silakan coba lagi beberapa saat.");
+                throw new Exception('Slot yang Anda pilih sedang dalam proses booking oleh pengguna lain. Silakan coba lagi beberapa saat.');
             }
             $acquiredLocks[] = $lock;
             $lockKeys[] = $lockKey;
@@ -233,12 +234,12 @@ class BookingService
 
                 // Check for existing slots or conflicts in booking_slots
                 $existingSlots = BookingSlot::where('court_id', $court->id)
-                    ->whereIn('slot_start', array_map(fn($s) => Carbon::parse($s)->toDateTimeString(), $slotStartsUtc))
+                    ->whereIn('slot_start', array_map(fn ($s) => Carbon::parse($s)->toDateTimeString(), $slotStartsUtc))
                     ->lockForUpdate()
                     ->get();
 
                 if ($existingSlots->isNotEmpty()) {
-                    throw new Exception("Satu atau lebih slot yang dipilih sudah terisi atau di-hold. Silakan pilih slot lain.");
+                    throw new Exception('Satu atau lebih slot yang dipilih sudah terisi atau di-hold. Silakan pilih slot lain.');
                 }
 
                 // Check for schedule blocks
@@ -248,12 +249,12 @@ class BookingService
                 $hasBlock = ScheduleBlock::where('court_id', $court->id)
                     ->where(function ($q) use ($firstSlot, $lastSlot) {
                         $q->whereBetween('start_at', [$firstSlot, $lastSlot])
-                          ->orWhereBetween('end_at', [$firstSlot, $lastSlot]);
+                            ->orWhereBetween('end_at', [$firstSlot, $lastSlot]);
                     })
                     ->exists();
 
                 if ($hasBlock) {
-                    throw new Exception("Slot terpilih berbenturan dengan jadwal perawatan atau kegiatan venue.");
+                    throw new Exception('Slot terpilih berbenturan dengan jadwal perawatan atau kegiatan venue.');
                 }
 
                 // Check consecutive slots if multiple
@@ -262,7 +263,7 @@ class BookingService
                         $curr = Carbon::parse($slotStartsUtc[$i]);
                         $next = Carbon::parse($slotStartsUtc[$i + 1]);
                         if ($curr->copy()->addMinutes(60)->ne($next)) {
-                            throw new Exception("Slot booking harus berurutan pada lapangan yang sama.");
+                            throw new Exception('Slot booking harus berurutan pada lapangan yang sama.');
                         }
                     }
                 }
@@ -294,7 +295,7 @@ class BookingService
                 $dpAmount = round(($totalPrice * $dpPercent) / 100, 2);
 
                 // Booking code generation
-                $bookingCode = 'BK-' . date('Ymd') . '-' . strtoupper(Str::random(5));
+                $bookingCode = 'BK-'.date('Ymd').'-'.strtoupper(Str::random(5));
 
                 // 3. Create booking record with 15-minute expiration hold
                 $booking = Booking::create([
@@ -339,11 +340,11 @@ class BookingService
     public function cancelBooking(Booking $booking, User $user, ?string $reason = null): Booking
     {
         // Check permission
-        if ($booking->user_id !== $user->id && !$user->isAdmin() && $user->id !== $booking->court->venue->owner_id) {
-            throw new Exception("Anda tidak memiliki izin untuk membatalkan booking ini.");
+        if ($booking->user_id !== $user->id && ! $user->isAdmin() && $user->id !== $booking->court->venue->owner_id) {
+            throw new Exception('Anda tidak memiliki izin untuk membatalkan booking ini.');
         }
 
-        if (!in_array($booking->status, [Booking::STATUS_PENDING_PAYMENT, Booking::STATUS_CONFIRMED])) {
+        if (! in_array($booking->status, [Booking::STATUS_PENDING_PAYMENT, Booking::STATUS_CONFIRMED])) {
             throw new Exception("Booking dengan status {$booking->status} tidak dapat dibatalkan.");
         }
 
@@ -383,7 +384,7 @@ class BookingService
      */
     public function updateOperationalStatus(Booking $booking, string $newStatus): Booking
     {
-        if (!in_array($newStatus, [Booking::STATUS_COMPLETED, Booking::STATUS_NO_SHOW])) {
+        if (! in_array($newStatus, [Booking::STATUS_COMPLETED, Booking::STATUS_NO_SHOW])) {
             throw new Exception("Status operasional tidak valid: {$newStatus}");
         }
 
@@ -392,6 +393,7 @@ class BookingService
         }
 
         $booking->update(['status' => $newStatus]);
+
         return $booking;
     }
 

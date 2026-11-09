@@ -27,7 +27,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             return back()->withErrors([
                 'email' => 'Email atau password yang Anda masukkan salah.',
             ])->onlyInput('email');

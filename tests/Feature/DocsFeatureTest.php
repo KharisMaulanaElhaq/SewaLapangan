@@ -22,7 +22,7 @@ class DocsFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/json');
-        
+
         $json = $response->json();
         $this->assertArrayHasKey('info', $json);
         $this->assertArrayHasKey('variable', $json);
@@ -54,4 +54,3 @@ class DocsFeatureTest extends TestCase
         $response->assertSee('openapi:');
     }
 }
-

@@ -13,10 +13,15 @@ class Booking extends Model
     use HasFactory;
 
     public const STATUS_PENDING_PAYMENT = 'PENDING_PAYMENT';
+
     public const STATUS_CONFIRMED = 'CONFIRMED';
+
     public const STATUS_COMPLETED = 'COMPLETED';
+
     public const STATUS_EXPIRED = 'EXPIRED';
+
     public const STATUS_CANCELLED = 'CANCELLED';
+
     public const STATUS_NO_SHOW = 'NO_SHOW';
 
     protected $fillable = [

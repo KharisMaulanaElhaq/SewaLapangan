@@ -40,7 +40,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $venue = Venue::find($request->venue_id);
 
-        if (!$venue) {
+        if (! $venue) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Venue olahraga tidak ditemukan.',
@@ -48,7 +48,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk menambahkan lapangan pada venue ini.',
@@ -60,24 +60,23 @@ class ManageCourtController extends Controller
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $file) {
                 $path = $file->store('courts', 'public');
-                $uploadedImages[] = '/storage/' . $path;
+                $uploadedImages[] = '/storage/'.$path;
             }
         } elseif ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('courts', 'public');
-            $uploadedImages[] = '/storage/' . $path;
+            $uploadedImages[] = '/storage/'.$path;
         }
 
-        $mainImageUrl = !empty($uploadedImages) ? $uploadedImages[0] : $request->input('image_url');
+        $mainImageUrl = ! empty($uploadedImages) ? $uploadedImages[0] : $request->input('image_url');
 
         $court = Court::create([
             'venue_id' => $venue->id,
             'name' => $request->name,
             'sport_type' => $request->sport_type,
             'image_url' => $mainImageUrl,
-            'images' => !empty($uploadedImages) ? $uploadedImages : ($mainImageUrl ? [$mainImageUrl] : null),
+            'images' => ! empty($uploadedImages) ? $uploadedImages : ($mainImageUrl ? [$mainImageUrl] : null),
             'is_active' => $request->input('is_active', true),
         ]);
-
 
         // Seed default operating hours (Sunday to Saturday 08:00 - 23:00)
         for ($day = 0; $day <= 6; $day++) {
@@ -103,7 +102,7 @@ class ManageCourtController extends Controller
             'status' => 'success',
             'message' => 'Lapangan berhasil ditambahkan beserta jam operasional default.',
             'data' => new CourtResource($court->load(['venue', 'operatingHours', 'courtPrices'])),
-        ], 201)->header('Location', '/api/v1/courts/' . $court->id);
+        ], 201)->header('Location', '/api/v1/courts/'.$court->id);
     }
 
     /**
@@ -114,7 +113,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $court = Court::with('venue')->find($id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -122,7 +121,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk mengubah lapangan ini.',
@@ -162,7 +161,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $court = Court::with('venue')->find($id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -170,7 +169,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk mengubah status lapangan ini.',
@@ -210,7 +209,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $court = Court::with('venue')->find($id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -218,7 +217,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk menghapus lapangan ini.',
@@ -256,7 +255,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $court = Court::with('venue')->find($request->court_id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -264,7 +263,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk mengatur tarif lapangan ini.',
@@ -298,7 +297,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $price = CourtPrice::with('court.venue')->find($id);
 
-        if (!$price) {
+        if (! $price) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Aturan tarif sewa tidak ditemukan.',
@@ -306,7 +305,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($price->court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($price->court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk menghapus aturan tarif ini.',
@@ -328,7 +327,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $court = Court::with('venue')->find($request->court_id);
 
-        if (!$court) {
+        if (! $court) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Lapangan tidak ditemukan.',
@@ -336,7 +335,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk memblokir jadwal lapangan ini.',
@@ -389,7 +388,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $block = ScheduleBlock::with('court.venue')->find($id);
 
-        if (!$block) {
+        if (! $block) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Pemblokiran jadwal tidak ditemukan.',
@@ -397,7 +396,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($block->court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($block->court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk menghapus pemblokiran jadwal ini.',
@@ -418,7 +417,7 @@ class ManageCourtController extends Controller
         $user = $request->user();
         $booking = Booking::with(['court.venue', 'bookingSlots', 'payments', 'user'])->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Transaksi booking tidak ditemukan.',
@@ -426,7 +425,7 @@ class ManageCourtController extends Controller
             ], 404);
         }
 
-        if ($booking->court->venue->owner_id !== $user->id && !$user->isAdmin()) {
+        if ($booking->court->venue->owner_id !== $user->id && ! $user->isAdmin()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Anda tidak memiliki wewenang untuk mengubah status booking ini.',
