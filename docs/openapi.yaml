@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SportVenue Core Booking API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     # SportVenue RESTful API Specification (v1)
     Kontrak API resmi platform penyewaan lapangan olahraga terintegrasi (**SportVenue**).
