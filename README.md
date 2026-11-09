@@ -2,10 +2,10 @@
 
 [![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![Laravel CI](https://github.com/KharisMaulanaElhaq/SewaLapangan/actions/workflows/ci.yml/badge.svg)](https://github.com/KharisMaulanaElhaq/SewaLapangan/actions/workflows/ci.yml)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Livewire](https://img.shields.io/badge/Livewire-3.x-FB70A9?style=for-the-badge&logo=livewire&logoColor=white)](https://livewire.laravel.com)
 [![Midtrans](https://img.shields.io/badge/Midtrans-Snap_Payment-002D62?style=for-the-badge)](https://midtrans.com)
-[![Release](https://img.shields.io/badge/Release-v1.1.0-2563EB?style=for-the-badge&logo=github)](CHANGELOG.md)
 
 Aplikasi Web Service & Platform Booking Lapangan Olahraga berbasis **RESTful API** dan Web UI modern. Dirancang sesuai spesifikasi PRD dengan arsitektur **Anti-Double Booking Berlapis**, integrasi pembayaran DP melalui **Midtrans Snap Payment Gateway**, dan dokumentasi API interaktif.
 
@@ -109,11 +109,6 @@ Sistem telah dilengkapi dengan test suite lengkap (Unit, Feature, Concurrency 50
 ```bash
 php artisan test
 ```
-
----
-
-## 📜 Riwayat Rilis & Perubahan
-Catatan rilis lengkap untuk setiap versi dapat dilihat pada [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
